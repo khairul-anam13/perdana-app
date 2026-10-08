@@ -1,0 +1,128 @@
+@import "tailwindcss";
+/* Font Awesome di layer `components` agar kelas ukuran Tailwind (size-5, dst.) tetap menang. */
+@import "@fortawesome/fontawesome-svg-core/styles.css" layer(components);
+
+/*
+ * Palet "desa": hijau daun sebagai utama; sub-warna diambil dari hal yang akrab di desa
+ * dan dipakai sebagai penanda modul, bukan hiasan:
+ *   padi (kuning)  = Kas        air (biru sawah) = Anggota
+ *   terong (ungu)  = Kegiatan   bata (merah)     = pengeluaran / bahaya
+ */
+@theme {
+  --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
+
+  --color-kapur: #f3f6ee;
+  --color-tinta: #14261b;
+  --color-tinta-lembut: #4a5d50;
+  --color-garis: #d9e2d3;
+  --color-garis-kuat: #b7c4b0;
+
+  --color-daun-50: #eef6ef;
+  --color-daun-100: #d8ebdc;
+  --color-daun-200: #b3d6bb;
+  --color-daun-300: #82ba8f;
+  --color-daun-400: #4f9a62;
+  --color-daun-500: #2f7d47;
+  --color-daun-600: #22663a;
+  --color-daun-700: #1a522f;
+  --color-daun-800: #143f25;
+  --color-daun-900: #0e2c1a;
+
+  --color-padi-50: #fff9e5;
+  --color-padi-100: #fdf0bd;
+  --color-padi-200: #fbe28a;
+  --color-padi-300: #f4cd55;
+  --color-padi-400: #e9b53a;
+  --color-padi-600: #a57712;
+  --color-padi-800: #6b4d0a;
+
+  --color-air-50: #eaf5fa;
+  --color-air-100: #cde8f3;
+  --color-air-400: #4fa3c7;
+  --color-air-600: #2a7a9f;
+  --color-air-700: #1f6080;
+
+  --color-terong-50: #f4eefa;
+  --color-terong-100: #e4d7f2;
+  --color-terong-400: #9a6cc4;
+  --color-terong-600: #6e3f9a;
+  --color-terong-700: #57307b;
+
+  --color-bata-50: #fdeeea;
+  --color-bata-100: #f9d3ca;
+  --color-bata-500: #d0482f;
+  --color-bata-600: #b23a24;
+  --color-bata-700: #8f2d1b;
+
+  --animate-sheet-in: sheet-in 0.22s ease-out;
+  --animate-fade-in: fade-in 0.18s ease-out;
+  --animate-spin-slow: spin 1.1s linear infinite;
+  --animate-toast-in: toast-in 0.2s ease-out;
+
+  @keyframes sheet-in {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes toast-in {
+    from {
+      transform: translateY(-8px);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+}
+
+@layer base {
+  html {
+    font-size: 106.25%; /* 17px: nyaman dibaca di luar ruangan */
+    -webkit-text-size-adjust: 100%;
+    background: var(--color-kapur);
+    color: var(--color-tinta);
+  }
+  body {
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    font-feature-settings: "tnum" 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-air-600);
+    outline-offset: 2px;
+  }
+  button,
+  [role="button"],
+  a {
+    touch-action: manipulation;
+  }
+  dialog::backdrop {
+    background: color-mix(in srgb, var(--color-tinta) 55%, transparent);
+    animation: fade-in 0.18s ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

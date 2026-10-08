@@ -1,0 +1,176 @@
+// Skema server. Semua tabel data punya: id (UUID dari klien), organization_id, created_at,
+// updated_at, deleted_at (soft delete), created_by, server_seq (kursor pull, urutan global).
+// server_seq memakai satu SEQUENCE bersama `server_seq` (dibuat di migrasi pertama).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organization {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  name        String
+  village     String   @map("village")
+  subdistrict String   @map("subdistrict")
+  regency     String   @map("regency")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  users        User[]
+  members      Member[]
+  activities   Activity[]
+  attendances  Attendance[]
+  transactions Transaction[]
+  receipts     Receipt[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String    @id @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  memberId       String?   @unique @map("member_id") @db.Uuid
+  username       String
+  credentialHash String    @map("credential_hash")
+  role           String // ketua | sekretaris | bendahara | anggota
+  active         Boolean   @default(true)
+  failedLogins   Int       @default(0) @map("failed_logins")
+  lockedUntil    DateTime? @map("locked_until") @db.Timestamptz(3)
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(3)
+  serverSeq      BigInt    @default(dbgenerated("nextval('server_seq')")) @map("server_seq")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  member       Member?      @relation(fields: [memberId], references: [id])
+
+  @@unique([organizationId, username])
+  @@map("users")
+}
+
+model Member {
+  id             String    @id @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  fullName       String    @map("full_name")
+  nickname       String?
+  gender         String // L | P
+  birthDate      DateTime? @map("birth_date") @db.Date
+  phone          String?
+  address        String?
+  dusun          String?
+  position       String    @default("Anggota")
+  status         String    @default("aktif") // aktif | nonaktif | alumni
+  joinedAt       DateTime  @map("joined_at") @db.Date
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(3)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(3)
+  serverSeq      BigInt    @default(dbgenerated("nextval('server_seq')")) @map("server_seq")
+
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  user         User?
+  attendances  Attendance[]
+  transactions Transaction[]
+
+  @@index([organizationId, serverSeq])
+  @@map("members")
+}
+
+model Activity {
+  id             String    @id @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  title          String
+  description    String?
+  startDate      DateTime  @map("start_date") @db.Date
+  endDate        DateTime? @map("end_date") @db.Date
+  location       String?
+  status         String    @default("rencana") // rencana | berjalan | selesai
+  leaderId       String?   @map("leader_id") @db.Uuid // penanggung jawab (member)
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(3)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(3)
+  serverSeq      BigInt    @default(dbgenerated("nextval('server_seq')")) @map("server_seq")
+
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  attendances  Attendance[]
+  transactions Transaction[]
+
+  @@index([organizationId, serverSeq])
+  @@map("activities")
+}
+
+model Attendance {
+  id             String    @id @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  activityId     String    @map("activity_id") @db.Uuid
+  memberId       String    @map("member_id") @db.Uuid
+  status         String // hadir | izin | alpa
+  recordedAt     DateTime  @map("recorded_at") @db.Timestamptz(3)
+  recordedBy     String?   @map("recorded_by") @db.Uuid
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(3)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(3)
+  serverSeq      BigInt    @default(dbgenerated("nextval('server_seq')")) @map("server_seq")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  activity     Activity     @relation(fields: [activityId], references: [id])
+  member       Member       @relation(fields: [memberId], references: [id])
+
+  // Absen ganda tidak mungkin: satu baris per (kegiatan, anggota).
+  @@unique([activityId, memberId])
+  @@index([organizationId, serverSeq])
+  @@map("attendances")
+}
+
+model Transaction {
+  id                    String    @id @db.Uuid
+  organizationId        String    @map("organization_id") @db.Uuid
+  type                  String // pemasukan | pengeluaran
+  amount                Int // rupiah bulat, selalu > 0
+  category              String
+  note                  String?
+  transactionDate       DateTime  @map("transaction_date") @db.Date
+  activityId            String?   @map("activity_id") @db.Uuid
+  memberId              String?   @map("member_id") @db.Uuid
+  reversesTransactionId String?   @map("reverses_transaction_id") @db.Uuid
+  // Tanpa FK: nota diunggah lewat antrean terpisah dan bisa tiba setelah transaksinya.
+  receiptId             String?   @map("receipt_id") @db.Uuid
+  createdBy             String?   @map("created_by") @db.Uuid
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime  @default(now()) @map("updated_at") @db.Timestamptz(3)
+  deletedAt             DateTime? @map("deleted_at") @db.Timestamptz(3) // selalu null: kas append-only
+  serverSeq             BigInt    @default(dbgenerated("nextval('server_seq')")) @map("server_seq")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  activity     Activity?    @relation(fields: [activityId], references: [id])
+  member       Member?      @relation(fields: [memberId], references: [id])
+
+  @@index([organizationId, serverSeq])
+  @@index([organizationId, transactionDate])
+  @@map("transactions")
+}
+
+model Receipt {
+  id             String    @id @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  mime           String
+  size           Int
+  data           Bytes
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(3)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(3)
+  serverSeq      BigInt    @default(dbgenerated("nextval('server_seq')")) @map("server_seq")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, serverSeq])
+  @@map("receipts")
+}

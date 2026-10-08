@@ -1,0 +1,24 @@
+{
+  "id": "/beranda",
+  "name": "Perdana — Administrasi Karang Taruna",
+  "short_name": "Perdana",
+  "description": "Kas, anggota, dan kegiatan Karang Taruna. Tetap bisa dipakai tanpa internet.",
+  "lang": "id",
+  "dir": "ltr",
+  "start_url": "/beranda",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f6ee",
+  "theme_color": "#1a522f",
+  "categories": ["productivity", "finance"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Catat transaksi", "short_name": "Catat", "url": "/kas/baru", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Kegiatan", "short_name": "Kegiatan", "url": "/kegiatan", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

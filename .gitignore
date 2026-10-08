@@ -1,0 +1,13 @@
+node_modules
+.next
+.env
+.env.local
+*.tsbuildinfo
+next-env.d.ts
+src/generated
+public/sw.js
+public/sw.js.map
+public/swe-worker-*.js
+public/workbox-*.js
+coverage
+.DS_Store
