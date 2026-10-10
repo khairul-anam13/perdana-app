@@ -1,12 +1,11 @@
-/** Tanda merek: buku kas folio, punggung kain merah dan label putih di sampul. */
-export function BrandMark({ className = "size-8" }: { className?: string }) {
+/**
+ * Logo Karang Taruna (SVG, latar transparan, public/logo-karang-taruna.svg). Ikut diprecache service worker
+ * (next.config.ts) supaya tampil juga saat offline. Dekoratif: nama aplikasi selalu ada di teks sebelahnya.
+ */
+export function BrandMark({ className = "h-9" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-      <rect x="4" y="3" width="40" height="42" rx="4" fill="#0f1a33" />
-      <rect x="4" y="3" width="9" height="42" rx="2" fill="#b8261f" />
-      <rect x="18" y="12" width="21" height="16" rx="1.5" fill="#fff" />
-      <path d="M21 18h15M21 23h10" stroke="#1d3faa" strokeWidth="2" strokeLinecap="round" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element -- SVG statis, tidak perlu optimasi next/image
+    <img src="/logo-karang-taruna.svg" alt="" className={`w-auto shrink-0 ${className}`} />
   );
 }
 

@@ -1,7 +1,7 @@
 // Membuat ikon PNG dari SVG memakai Chrome yang sudah terpasang (tanpa dependensi tambahan).
 // Pakai: node scripts/make-icons.mjs   (set CHROME_PATH bila Chrome tidak di lokasi umum)
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -14,20 +14,20 @@ const chrome =
   ].find(existsSync);
 if (!chrome) throw new Error("Chrome tidak ditemukan. Set CHROME_PATH.");
 
-/** Tunas padi di atas petak berundak. `bleed` = latar penuh (maskable) tanpa sudut membulat. */
-const svg = (
-  bleed,
-) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" ${bleed ? "" : 'rx="112"'} fill="#1a522f"/>
-  <g ${bleed ? 'transform="translate(256 256) scale(.82) translate(-256 -256)"' : ""}>
-    <path d="M0 392q128-52 256 0t256 0v120H0Z" fill="#143f25"/>
-    <path d="M0 440q128-52 256 0t256 0v72H0Z" fill="#0e2c1a"/>
-    <path d="M0 392q128-52 256 0t256 0" fill="none" stroke="#f4cd55" stroke-width="7" opacity=".8"/>
-    <path d="M256 388V226" stroke="#f4cd55" stroke-width="16" stroke-linecap="round"/>
-    <path d="M256 282c-60 0-100-38-110-98 60 0 104 38 110 98Z" fill="#f4cd55"/>
-    <path d="M256 226c56 0 94-35 104-88-56 0-100 33-104 88Z" fill="#fdf0bd"/>
-  </g>
+// Logo organisasi (public/logo-karang-taruna.svg) di atas latar putih.
+const logoSvg = readFileSync(new URL("../public/logo-karang-taruna.svg", import.meta.url), "utf8");
+const [, viewBox, body] = logoSvg.match(/<svg[^>]*viewBox="([^"]+)"[^>]*>([\s\S]*)<\/svg>/);
+const [, , vw, vh] = viewBox.split(" ").map(Number);
+
+/** `bleed` = latar penuh (maskable/iOS) tanpa sudut membulat, logo lebih kecil agar muat di zona aman. */
+const svg = (bleed) => {
+  const w = bleed ? 330 : 400;
+  const h = (w * vh) / vw;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" ${bleed ? "" : 'rx="112"'} fill="#fff"/>
+  <svg x="${(512 - w) / 2}" y="${(512 - h) / 2}" width="${w}" height="${h}" viewBox="${viewBox}">${body}</svg>
 </svg>`;
+};
 
 const out = new URL("../public/icons/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 mkdirSync(out, { recursive: true });

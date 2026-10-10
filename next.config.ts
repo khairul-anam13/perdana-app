@@ -1,4 +1,5 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import withSerwistInit from "@serwist/next";
 import type { NextConfig } from "next";
 
@@ -19,6 +20,11 @@ const shellRoutes = [
   "/~offline",
 ];
 const revision = randomUUID();
+// Logo organisasi dipakai di header dan halaman masuk: harus ada di HP sejak pemasangan pertama.
+const logo = {
+  url: "/logo-karang-taruna.svg",
+  revision: createHash("md5").update(readFileSync("public/logo-karang-taruna.svg")).digest("hex"),
+};
 
 const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
@@ -29,7 +35,7 @@ const withSerwist = withSerwistInit({
   register: false,
   reloadOnOnline: false,
   cacheOnNavigation: false,
-  additionalPrecacheEntries: shellRoutes.map((url) => ({ url, revision })),
+  additionalPrecacheEntries: [...shellRoutes.map((url) => ({ url, revision })), logo],
 });
 
 const nextConfig: NextConfig = {
