@@ -1,5 +1,7 @@
 "use client";
 
+import { IconWarning } from "./icons";
+
 /** Deretan pilihan cepat (satu terpilih). Lebih cepat dari dropdown untuk daftar pendek. */
 export function Chips<T extends string>({
   label,
@@ -15,8 +17,8 @@ export function Chips<T extends string>({
   error?: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label}>
-      <p className="mb-1.5 text-sm font-medium">{label}</p>
+    <div role="radiogroup" aria-label={label} aria-invalid={error ? true : undefined}>
+      <p className="mb-1.5 text-sm font-bold">{label}</p>
       <div className="flex flex-wrap gap-2">
         {options.map((o) => {
           const active = o === value;
@@ -27,10 +29,10 @@ export function Chips<T extends string>({
               role="radio"
               aria-checked={active}
               onClick={() => onChange(o)}
-              className={`min-h-11 rounded-full px-4 text-sm font-semibold ring-1 transition-colors ${
+              className={`min-h-11 rounded-md border px-3.5 text-sm font-bold transition-colors ${
                 active
-                  ? "bg-daun-700 text-white ring-daun-700"
-                  : "bg-white text-tinta ring-garis-kuat hover:bg-daun-50"
+                  ? "border-pulpen-600 bg-pulpen-600 text-white"
+                  : `bg-lembar text-tinta hover:bg-pulpen-50 active:bg-pulpen-100 ${error ? "border-merah-600" : "border-garis-kuat"}`
               }`}
             >
               {o}
@@ -38,7 +40,11 @@ export function Chips<T extends string>({
           );
         })}
       </div>
-      {error && <p className="mt-1.5 text-sm font-medium text-bata-700">{error}</p>}
+      {error && (
+        <p className="mt-1.5 flex items-center gap-1.5 text-sm font-bold text-merah-700">
+          <IconWarning className="size-4" /> {error}
+        </p>
+      )}
     </div>
   );
 }

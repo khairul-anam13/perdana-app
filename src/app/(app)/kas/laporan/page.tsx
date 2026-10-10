@@ -2,12 +2,12 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
+import { ListSkeleton } from "@/components/ui/empty-state";
 import { IconWhatsapp } from "@/components/ui/icons";
 import { MonthNav } from "@/components/ui/month-nav";
 import { PageHeader } from "@/components/ui/page-header";
 import { useToast } from "@/components/ui/toast";
-import { buttonClass } from "@/components/ui/button";
 import { getMeta } from "@/lib/db/local";
 import { formatRupiah } from "@/lib/format/rupiah";
 import { formatBulan, formatTanggal, monthKey, todayISO } from "@/lib/format/tanggal";
@@ -54,108 +54,73 @@ export default function LaporanKasPage() {
     }
   }
 
+  const pos = [
+    {
+      title: "Pemasukan",
+      sign: "+",
+      rows: report.income,
+      sum: report.summary.income,
+      color: "text-pulpen-600",
+    },
+    {
+      title: "Pengeluaran",
+      sign: "−",
+      rows: report.expense,
+      sum: report.summary.expense,
+      color: "text-merah-600",
+    },
+  ];
+
   return (
     <>
       <PageHeader
-        module="kas"
         title="Laporan kas"
         subtitle="Bisa dilihat semua anggota, juga tanpa internet."
         back={{ href: "/kas", label: "Kas" }}
       />
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
         <MonthNav value={month} onChange={setMonth} />
 
         {loading ? (
-          <p className="py-10 text-center text-tinta-lembut">Membuka data…</p>
+          <ListSkeleton rows={5} />
         ) : (
           <>
-            <section
-              aria-label={`Ringkasan ${formatBulan(month)}`}
-              className="rounded-3xl bg-white p-5 ring-1 ring-garis"
-            >
-              <dl className="flex flex-col gap-3">
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-tinta-lembut">Saldo awal</dt>
-                  <dd className="font-semibold tabular-nums">{formatRupiah(report.opening)}</dd>
+            {/* Satu lembar laporan, urut seperti buku kas: saldo awal, pos-pos, saldo akhir. */}
+            <section aria-label={`Ringkasan ${formatBulan(month)}`} className="lembar px-4 py-1">
+              <dl className="divide-y divide-garis">
+                <div className="flex items-baseline justify-between gap-3 py-3">
+                  <dt className="text-tinta-pudar">Saldo awal</dt>
+                  <dd className="font-bold">{formatRupiah(report.opening)}</dd>
                 </div>
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-tinta-lembut">Pemasukan</dt>
-                  <dd className="font-semibold text-daun-700 tabular-nums">
-                    + {formatRupiah(report.summary.income)}
-                  </dd>
-                </div>
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-tinta-lembut">Pengeluaran</dt>
-                  <dd className="font-semibold text-bata-700 tabular-nums">
-                    − {formatRupiah(report.summary.expense)}
-                  </dd>
-                </div>
-                <div className="flex items-baseline justify-between gap-3 border-t border-garis pt-3">
-                  <dt className="font-semibold">Saldo akhir</dt>
-                  <dd className="text-2xl font-bold tabular-nums">
-                    {formatRupiah(report.closing)}
-                  </dd>
-                </div>
-              </dl>
-            </section>
-
-            {(report.income.length > 0 || report.expense.length > 0) && (
-              <section className="grid gap-4 sm:grid-cols-2" aria-label="Rincian per kategori">
-                {[
-                  { title: "Pemasukan per kategori", rows: report.income, color: "text-daun-700" },
-                  {
-                    title: "Pengeluaran per kategori",
-                    rows: report.expense,
-                    color: "text-bata-700",
-                  },
-                ].map((g) => (
-                  <div key={g.title} className="rounded-2xl bg-white p-4 ring-1 ring-garis">
-                    <h2 className="mb-2 font-semibold">{g.title}</h2>
-                    {g.rows.length === 0 ? (
-                      <p className="text-sm text-tinta-lembut">Tidak ada.</p>
-                    ) : (
-                      <ul className="flex flex-col gap-1.5 text-sm">
+                {pos.map((g) => (
+                  <div key={g.title} className="py-3">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <dt className="font-bold">{g.title}</dt>
+                      <dd className={`font-bold ${g.color}`}>
+                        {g.sign} {formatRupiah(g.sum)}
+                      </dd>
+                    </div>
+                    {g.rows.length > 0 && (
+                      <ul className="mt-1.5 flex flex-col gap-1 pl-4 text-sm text-tinta-pudar">
                         {g.rows.map((r) => (
                           <li key={r.category} className="flex justify-between gap-3">
                             <span>{r.category}</span>
-                            <span className={`font-semibold tabular-nums ${g.color}`}>
-                              {formatRupiah(r.total)}
-                            </span>
+                            <span>{formatRupiah(r.total)}</span>
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
                 ))}
-              </section>
-            )}
-
-            <section aria-label="Daftar transaksi bulan ini">
-              <h2 className="mb-2 font-semibold">Transaksi {formatBulan(month)}</h2>
-              {report.inMonth.length === 0 ? (
-                <p className="rounded-2xl bg-white p-4 text-tinta-lembut ring-1 ring-garis">
-                  Belum ada transaksi di bulan ini.
-                </p>
-              ) : (
-                <ul className="divide-y divide-garis rounded-2xl bg-white px-4 ring-1 ring-garis">
-                  {report.inMonth.map((t) => (
-                    <li key={t.id} className="flex items-start justify-between gap-3 py-3">
-                      <div className="min-w-0">
-                        <p className="font-medium">{t.category}</p>
-                        <p className="truncate text-sm text-tinta-lembut">
-                          {formatTanggal(t.transactionDate)}
-                          {t.note ? ` · ${t.note}` : ""}
-                        </p>
-                      </div>
-                      <p
-                        className={`shrink-0 font-semibold tabular-nums ${t.type === "pemasukan" ? "text-daun-700" : "text-bata-700"}`}
-                      >
-                        {t.type === "pemasukan" ? "+" : "−"} {formatRupiah(t.amount)}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                <div className="flex items-baseline justify-between gap-3 py-4">
+                  <dt className="font-bold">Saldo akhir</dt>
+                  <dd
+                    className={`font-display text-2xl font-bold ${report.closing < 0 ? "text-merah-600" : ""}`}
+                  >
+                    <span className="jumlah">{formatRupiah(report.closing)}</span>
+                  </dd>
+                </div>
+              </dl>
             </section>
 
             <div className="grid gap-2 sm:grid-cols-2">
@@ -170,10 +135,40 @@ export default function LaporanKasPage() {
               <Button variant="secondary" size="lg" block onClick={copy}>
                 Salin teks laporan
               </Button>
+              <p className="text-sm text-tinta-pudar sm:col-span-2">
+                WhatsApp butuh internet. Salin teks bisa kapan saja.
+              </p>
             </div>
-            <p className="text-center text-sm text-tinta-lembut">
-              Tombol WhatsApp butuh internet. Salin teks bisa dipakai kapan saja.
-            </p>
+
+            <section aria-labelledby="rincian">
+              <h2 id="rincian" className="mb-2 font-display text-lg font-bold">
+                Rincian {formatBulan(month)}
+              </h2>
+              {report.inMonth.length === 0 ? (
+                <p className="lembar border-dashed p-4 text-tinta-pudar shadow-none">
+                  Belum ada transaksi di bulan ini. Saldo akhir sama dengan saldo awal.
+                </p>
+              ) : (
+                <ul className="lembar divide-y divide-garis px-4">
+                  {report.inMonth.map((t) => (
+                    <li key={t.id} className="flex items-start justify-between gap-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="font-bold">{t.category}</p>
+                        <p className="truncate text-sm text-tinta-pudar">
+                          {formatTanggal(t.transactionDate)}
+                          {t.note ? `, ${t.note}` : ""}
+                        </p>
+                      </div>
+                      <p
+                        className={`shrink-0 font-bold ${t.type === "pemasukan" ? "text-pulpen-600" : "text-merah-600"}`}
+                      >
+                        {t.type === "pemasukan" ? "+" : "−"} {formatRupiah(t.amount)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           </>
         )}
       </div>

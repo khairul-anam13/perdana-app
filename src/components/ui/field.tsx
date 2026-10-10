@@ -5,9 +5,10 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from "react";
+import { IconWarning } from "./icons";
 
 const control =
-  "w-full rounded-xl border border-garis-kuat bg-white px-3.5 text-base text-tinta placeholder:text-tinta-lembut/70 disabled:bg-daun-50 disabled:text-tinta-lembut aria-[invalid=true]:border-bata-600";
+  "w-full rounded-md border border-garis-kuat bg-lembar px-3.5 text-base text-tinta placeholder:text-tinta-pudar hover:border-tinta-pudar focus:border-pulpen-600 focus:outline-3 focus:outline-offset-1 focus:outline-pulpen-600 disabled:border-garis disabled:bg-kertas disabled:text-tinta-pudar aria-[invalid=true]:border-2 aria-[invalid=true]:border-merah-600";
 
 type FieldProps = {
   label: string;
@@ -27,7 +28,7 @@ export function Field({ label, error, hint, children, className = "" }: FieldPro
   const noteId = `${id}-note`;
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-tinta">
+      <label htmlFor={id} className="mb-1.5 block text-sm font-bold text-tinta">
         {label}
       </label>
       {children({
@@ -38,8 +39,9 @@ export function Field({ label, error, hint, children, className = "" }: FieldPro
       {(error || hint) && (
         <p
           id={noteId}
-          className={`mt-1.5 text-sm ${error ? "font-medium text-bata-700" : "text-tinta-lembut"}`}
+          className={`mt-1.5 flex items-center gap-1.5 text-sm ${error ? "font-bold text-merah-700" : "text-tinta-pudar"}`}
         >
+          {error && <IconWarning className="size-4" />}
           {error ?? hint}
         </p>
       )}

@@ -3,61 +3,58 @@
 @import "@fortawesome/fontawesome-svg-core/styles.css" layer(components);
 
 /*
- * Palet "desa": hijau daun sebagai utama; sub-warna diambil dari hal yang akrab di desa
- * dan dipakai sebagai penanda modul, bukan hiasan:
- *   padi (kuning)  = Kas        air (biru sawah) = Anggota
- *   terong (ungu)  = Kegiatan   bata (merah)     = pengeluaran / bahaya
+ * Arah visual "Buku Kas Folio": aplikasi ini menggantikan buku kas dan daftar hadir kertas,
+ * jadi bahasanya diambil dari sana dan tiap warna punya satu arti:
+ *   pulpen  (biru)   = tinta: aksi utama dan uang masuk
+ *   merah            = uang keluar, garis kolom, bahaya
+ *   stempel (hijau)  = sah: lunas, hadir, tersinkron
+ *   stabilo (kuning) = perlu perhatian: belum terkirim, belum bayar
+ *   sampul  (biru tua) = sampul buku: halaman masuk dan navigasi layar lebar
  */
 @theme {
-  --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-besley), ui-serif, Georgia, serif;
 
-  --color-kapur: #f3f6ee;
-  --color-tinta: #14261b;
-  --color-tinta-lembut: #4a5d50;
-  --color-garis: #d9e2d3;
-  --color-garis-kuat: #b7c4b0;
+  --color-kertas: #ecf0f3;
+  --color-lembar: #ffffff;
+  --color-tinta: #14213d;
+  --color-tinta-pudar: #4a5873;
+  --color-garis: #cbd5df;
+  --color-garis-kuat: #7c8ca1;
 
-  --color-daun-50: #eef6ef;
-  --color-daun-100: #d8ebdc;
-  --color-daun-200: #b3d6bb;
-  --color-daun-300: #82ba8f;
-  --color-daun-400: #4f9a62;
-  --color-daun-500: #2f7d47;
-  --color-daun-600: #22663a;
-  --color-daun-700: #1a522f;
-  --color-daun-800: #143f25;
-  --color-daun-900: #0e2c1a;
+  --color-pulpen-50: #eef2fc;
+  --color-pulpen-100: #dbe4f9;
+  --color-pulpen-600: #1d3faa;
+  --color-pulpen-700: #173289;
+  --color-pulpen-800: #11266a;
 
-  --color-padi-50: #fff9e5;
-  --color-padi-100: #fdf0bd;
-  --color-padi-200: #fbe28a;
-  --color-padi-300: #f4cd55;
-  --color-padi-400: #e9b53a;
-  --color-padi-600: #a57712;
-  --color-padi-800: #6b4d0a;
+  --color-merah-50: #fceeec;
+  --color-merah-100: #f7d4d0;
+  --color-merah-600: #b8261f;
+  --color-merah-700: #96201a;
 
-  --color-air-50: #eaf5fa;
-  --color-air-100: #cde8f3;
-  --color-air-400: #4fa3c7;
-  --color-air-600: #2a7a9f;
-  --color-air-700: #1f6080;
+  --color-stempel-50: #e9f5ee;
+  --color-stempel-100: #cde9d8;
+  --color-stempel-600: #17734a;
+  --color-stempel-700: #115a39;
 
-  --color-terong-50: #f4eefa;
-  --color-terong-100: #e4d7f2;
-  --color-terong-400: #9a6cc4;
-  --color-terong-600: #6e3f9a;
-  --color-terong-700: #57307b;
+  --color-stabilo-100: #fff6c2;
+  --color-stabilo-300: #ffe45c;
+  --color-stabilo-800: #5c4a00;
 
-  --color-bata-50: #fdeeea;
-  --color-bata-100: #f9d3ca;
-  --color-bata-500: #d0482f;
-  --color-bata-600: #b23a24;
-  --color-bata-700: #8f2d1b;
+  --color-sampul: #0f1a33;
+  --color-sampul-terang: #22335c;
+
+  /* Tumpukan halaman: bayangan tegas, bukan kabut abu-abu. */
+  --shadow-lembar:
+    0 1px 0 var(--color-garis), 0 3px 0 -1px var(--color-lembar), 0 4px 0 -1px var(--color-garis);
+  --shadow-angkat: 0 10px 28px -8px rgb(15 26 51 / 0.35);
 
   --animate-sheet-in: sheet-in 0.22s ease-out;
   --animate-fade-in: fade-in 0.18s ease-out;
   --animate-spin-slow: spin 1.1s linear infinite;
   --animate-toast-in: toast-in 0.2s ease-out;
+  --animate-cap: cap 0.28s cubic-bezier(0.2, 1.4, 0.4, 1);
 
   @keyframes sheet-in {
     from {
@@ -87,24 +84,40 @@
       opacity: 1;
     }
   }
+  /* Stempel ditekan ke kertas: besar lalu mendarat. */
+  @keyframes cap {
+    from {
+      transform: rotate(-7deg) scale(1.7);
+      opacity: 0;
+    }
+    to {
+      transform: rotate(-7deg) scale(1);
+      opacity: 1;
+    }
+  }
 }
 
 @layer base {
   html {
     font-size: 106.25%; /* 17px: nyaman dibaca di luar ruangan */
     -webkit-text-size-adjust: 100%;
-    background: var(--color-kapur);
+    background: var(--color-kertas);
     color: var(--color-tinta);
   }
   body {
     min-height: 100dvh;
     font-family: var(--font-sans);
-    font-feature-settings: "tnum" 0;
     -webkit-tap-highlight-color: transparent;
   }
   :focus-visible {
-    outline: 3px solid var(--color-air-600);
+    outline: 3px solid var(--color-pulpen-600);
     outline-offset: 2px;
+  }
+  /* Di atas sampul biru tua, cincin fokus biru tidak terlihat: pakai kuning stabilo. */
+  @media (min-width: 48rem) {
+    .di-sampul :focus-visible {
+      outline-color: var(--color-stabilo-300);
+    }
   }
   button,
   [role="button"],
@@ -112,8 +125,65 @@
     touch-action: manipulation;
   }
   dialog::backdrop {
-    background: color-mix(in srgb, var(--color-tinta) 55%, transparent);
+    background: color-mix(in srgb, var(--color-sampul) 60%, transparent);
     animation: fade-in 0.18s ease-out;
+  }
+}
+
+@layer components {
+  /* Selembar kertas buku: dasar semua daftar dan panel. */
+  .lembar {
+    background: var(--color-lembar);
+    border: 1px solid var(--color-garis);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-lembar);
+  }
+  /* Kolom tanggal di kiri, dibatasi garis merah ganda seperti buku kas. */
+  .kolom-tanggal {
+    border-right: 3px double var(--color-merah-600);
+  }
+  /* Jumlah akhir: garis ganda di bawah angka, kebiasaan pembukuan. */
+  .jumlah {
+    border-bottom: 4px double currentColor;
+    padding-bottom: 0.15em;
+  }
+  /* Coretan stabilo di atas teks. */
+  .stabilo {
+    background: linear-gradient(transparent 12%, var(--color-stabilo-300) 12% 88%, transparent 88%);
+    padding-inline: 0.25em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  /* Stempel karet. Huruf besar di sini meniru stempel asli, bukan gaya label. */
+  .cap {
+    display: inline-block;
+    transform: rotate(-7deg);
+    border: 2px solid currentColor;
+    border-radius: 0.25rem;
+    padding: 0.05em 0.45em;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-stempel-600);
+  }
+  /* Pemutar tanda sedang bekerja di dalam tombol. */
+  .pemutar {
+    width: 1.1em;
+    height: 1.1em;
+    flex-shrink: 0;
+    border: 2.5px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 999px;
+    animation: spin 0.7s linear infinite;
+  }
+  /* Baris kosong bergaris saat data sedang dibuka. */
+  .baris-tunggu {
+    height: 0.8rem;
+    border-radius: 2px;
+    background: var(--color-garis);
+    animation: pulse 1.4s ease-in-out infinite;
   }
 }
 

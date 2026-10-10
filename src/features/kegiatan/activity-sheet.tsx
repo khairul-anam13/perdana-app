@@ -154,16 +154,16 @@ function ActivityForm({
         size="lg"
         block
         disabled={busy}
-        className="bg-terong-600 hover:bg-terong-700"
+        className="bg-pulpen-600 hover:bg-pulpen-700"
       >
         {busy ? "Menyimpan…" : activity ? "Simpan perubahan" : "Tambah kegiatan"}
       </Button>
 
       {activity &&
         (confirmDelete ? (
-          <div className="rounded-2xl bg-bata-50 p-4 ring-1 ring-bata-100">
-            <p className="font-semibold text-bata-700">Hapus kegiatan ini?</p>
-            <p className="mt-1 text-sm text-tinta-lembut">
+          <div className="rounded-lg bg-merah-50 p-4 ring-1 ring-merah-100">
+            <p className="font-bold text-merah-700">Hapus kegiatan ini?</p>
+            <p className="mt-1 text-sm text-tinta-pudar">
               Kegiatan hilang dari daftar. Catatan kas yang terkait tetap ada.
             </p>
             <div className="mt-3 flex gap-2">
@@ -176,7 +176,7 @@ function ActivityForm({
             </div>
           </div>
         ) : (
-          <Button variant="ghost" onClick={() => setConfirmDelete(true)} className="text-bata-700">
+          <Button variant="ghost" onClick={() => setConfirmDelete(true)} className="text-merah-700">
             Hapus kegiatan
           </Button>
         ))}

@@ -32,9 +32,9 @@ export function useToast(): ToastApi {
 }
 
 const toneStyle: Record<Tone, string> = {
-  ok: "bg-daun-800 text-white",
-  pending: "bg-padi-100 text-padi-800 ring-1 ring-padi-300",
-  error: "bg-bata-600 text-white",
+  ok: "border-stempel-600 bg-sampul text-white",
+  pending: "border-stabilo-300 bg-sampul text-white",
+  error: "border-merah-600 bg-merah-50 text-merah-700",
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -60,7 +60,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 
   const show = useCallback<ToastApi["show"]>(
-    (text, tone = "ok", ms = 4500) => {
+    (text, tone = "ok", ms = tone === "error" ? 8000 : 4500) => {
       const id = nextId.current++;
       setItems((xs) => [...xs.slice(-2), { id, text, tone }]);
       arm(id, ms);
@@ -104,13 +104,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {items.map((t) => (
           <div
             key={t.id}
-            role="status"
-            className={`pointer-events-auto flex max-w-md animate-toast-in items-center gap-2.5 rounded-2xl px-4 py-3 text-sm font-medium shadow-lg ${toneStyle[t.tone]}`}
+            role={t.tone === "error" ? "alert" : "status"}
+            className={`pointer-events-auto flex max-w-md animate-toast-in items-center gap-2.5 rounded-md border-l-[6px] px-4 py-3 text-sm font-bold shadow-angkat ${toneStyle[t.tone]}`}
           >
             {t.tone === "ok" ? (
-              <IconCheck className="size-5 shrink-0" />
+              <IconCheck className="size-5 shrink-0 text-stempel-100" />
             ) : t.tone === "pending" ? (
-              <IconSync className="size-5 shrink-0" />
+              <IconSync className="size-5 shrink-0 text-stabilo-300" />
             ) : (
               <IconWarning className="size-5 shrink-0" />
             )}

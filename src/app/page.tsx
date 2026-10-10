@@ -11,7 +11,7 @@ export default function Home() {
   }, [router]);
   return (
     <div className="grid min-h-dvh place-items-center">
-      <span className="animate-pulse text-tinta-lembut">Membuka Perdana…</span>
+      <span className="animate-pulse text-tinta-pudar">Membuka Perdana…</span>
     </div>
   );
 }

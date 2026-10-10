@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (!session) {
     return (
       <div className="grid min-h-dvh place-items-center">
-        <span className="animate-pulse text-tinta-lembut">Membuka Perdana…</span>
+        <span className="animate-pulse text-tinta-pudar">Membuka Perdana…</span>
       </div>
     );
   }
@@ -58,12 +58,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh md:pl-60">
-      <header className="sticky top-0 z-30 border-b border-garis bg-kapur/90 pt-[env(safe-area-inset-top)] backdrop-blur md:fixed md:inset-x-auto md:left-0 md:z-50 md:w-60 md:border-b-0 md:bg-transparent md:backdrop-blur-none">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-2.5 md:max-w-none md:flex-col md:items-start md:py-4">
+      <header className="di-sampul sticky top-0 z-30 border-b border-garis bg-kertas/95 pt-[env(safe-area-inset-top)] md:fixed md:inset-x-auto md:left-2 md:z-50 md:w-58 md:border-b-0 md:bg-transparent">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-1.5 md:max-w-none md:flex-col md:items-start md:py-5">
           <div className="min-w-0">
-            <Wordmark />
+            <Wordmark className="md:text-white" />
             {org && (
-              <p className="mt-0.5 hidden max-w-52 truncate pl-[2.875rem] text-sm text-tinta-lembut md:block">
+              <p className="mt-1 hidden max-w-52 truncate text-sm text-pulpen-100 md:block">
                 {org.name}
               </p>
             )}
@@ -73,12 +73,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {expired && (
-        <div role="alert" className="border-b border-bata-100 bg-bata-50">
+        <div role="alert" className="border-b-2 border-merah-600 bg-merah-50">
           <div className="mx-auto flex max-w-2xl items-start gap-3 px-4 py-3">
-            <IconWarning className="mt-0.5 size-5 shrink-0 text-bata-600" />
+            <IconWarning className="mt-0.5 size-5 shrink-0 text-merah-600" />
             <div className="min-w-0 flex-1 text-sm">
-              <p className="font-semibold text-bata-700">Sesi habis, mode baca saja</p>
-              <p className="text-tinta-lembut">
+              <p className="font-bold text-merah-700">Sesi habis, mode baca saja</p>
+              <p className="text-tinta-pudar">
                 Anda masih bisa melihat data. Data yang belum terkirim tetap aman di HP. Masuk lagi
                 saat ada internet.
               </p>
@@ -97,7 +97,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-32 md:pt-4 md:pb-12">{children}</main>
+      <main className="mx-auto w-full max-w-2xl px-4 pb-36 md:pt-4 md:pb-12">{children}</main>
       <BottomNav />
     </div>
   );

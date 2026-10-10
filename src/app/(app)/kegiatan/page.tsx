@@ -5,13 +5,13 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { IconCalendar, IconChevronRight, IconMapPin, IconPlus } from "@/components/ui/icons";
+import { EmptyState, ListSkeleton } from "@/components/ui/empty-state";
+import { IconChevronRight, IconMapPin, IconPlus } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/page-header";
 import { Segmented } from "@/components/ui/segmented";
 import { usePerm } from "@/lib/auth/use-perm";
 import { db } from "@/lib/db/local";
-import { formatTanggal, todayISO } from "@/lib/format/tanggal";
+import { formatTanggalPanjang, todayISO } from "@/lib/format/tanggal";
 import { ActivitySheet, type ActivitySheetState } from "@/features/kegiatan/activity-sheet";
 import { listActivities } from "@/features/kegiatan/repository";
 import { ACTIVITY_STATUS_LABEL, type Activity } from "@/features/kegiatan/schema";
@@ -21,33 +21,7 @@ type Tab = "mendatang" | "lewat";
 const isUpcoming = (a: Activity, today: string) =>
   a.status !== "selesai" && (a.endDate ?? a.startDate) >= today;
 
-const MONTH_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "Mei",
-  "Jun",
-  "Jul",
-  "Agu",
-  "Sep",
-  "Okt",
-  "Nov",
-  "Des",
-];
-
-function DateBlock({ iso }: { iso: string }) {
-  const [, m, d] = iso.split("-").map(Number);
-  return (
-    <span
-      aria-hidden
-      className="grid size-14 shrink-0 place-items-center rounded-2xl bg-terong-100 leading-none text-terong-700"
-    >
-      <span className="text-xl font-bold">{d}</span>
-      <span className="-mt-2.5 text-xs font-semibold">{MONTH_SHORT[m - 1]}</span>
-    </span>
-  );
-}
+const BULAN_PENDEK = "Jan Feb Mar Apr Mei Jun Jul Agu Sep Okt Nov Des".split(" ");
 
 export default function KegiatanPage() {
   const activities = useLiveQuery(listActivities, []);
@@ -81,15 +55,11 @@ export default function KegiatanPage() {
   return (
     <>
       <PageHeader
-        module="kegiatan"
         title="Kegiatan"
-        subtitle="Daftar kegiatan dan absensi anggota."
+        subtitle="Buka kegiatan untuk mengisi atau melihat absensi."
         actions={
           canEdit && (
-            <Button
-              onClick={() => setSheet({ mode: "add" })}
-              className="bg-terong-600 hover:bg-terong-700"
-            >
+            <Button onClick={() => setSheet({ mode: "add" })}>
               <IconPlus className="size-5" /> Tambah
             </Button>
           )
@@ -99,26 +69,28 @@ export default function KegiatanPage() {
       <div className="flex flex-col gap-4">
         <Segmented<Tab>
           label="Tampilkan"
+          hideLabel
           value={tab}
           onChange={setTab}
           options={[
-            { value: "mendatang", label: `Mendatang · ${upcoming.length}` },
-            { value: "lewat", label: `Sudah lewat · ${past.length}` },
+            { value: "mendatang", label: `Mendatang (${upcoming.length})` },
+            { value: "lewat", label: `Sudah lewat (${past.length})` },
           ]}
         />
 
         {activities === undefined ? (
-          <p className="py-10 text-center text-tinta-lembut">Membuka data…</p>
+          <ListSkeleton />
         ) : shown.length === 0 ? (
           <EmptyState
-            icon={<IconCalendar />}
             title={
               tab === "mendatang" ? "Belum ada kegiatan mendatang" : "Belum ada kegiatan yang lewat"
             }
             hint={
-              tab === "mendatang" && canEdit
-                ? "Tambahkan kegiatan agar anggota bisa absen."
-                : undefined
+              tab === "lewat"
+                ? "Kegiatan pindah ke sini setelah tanggalnya lewat atau ditandai selesai."
+                : canEdit
+                  ? "Tambahkan pertemuan rutin atau kegiatan berikutnya agar anggota bisa absen."
+                  : "Kegiatan muncul di sini setelah Sekretaris atau Ketua menambahkannya."
             }
             action={
               tab === "mendatang" && canEdit ? (
@@ -127,41 +99,56 @@ export default function KegiatanPage() {
             }
           />
         ) : (
-          <ul className="flex flex-col gap-2.5">
-            {shown.map((a) => (
-              <li key={a.id}>
-                <Link
-                  href={`/kegiatan/detail?id=${a.id}`}
-                  className="flex min-h-20 items-center gap-3.5 rounded-2xl bg-white p-3 ring-1 ring-garis hover:bg-terong-50 active:bg-terong-50"
-                >
-                  <DateBlock iso={a.startDate} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold">{a.title}</span>
-                    <span className="mt-0.5 flex items-center gap-1 truncate text-sm text-tinta-lembut">
-                      <IconMapPin className="size-4 shrink-0" />
-                      <span className="truncate">{a.location ?? formatTanggal(a.startDate)}</span>
+          <ul className="lembar divide-y divide-garis overflow-hidden">
+            {shown.map((a) => {
+              const hadir = hadirCounts?.get(a.id) ?? 0;
+              return (
+                <li key={a.id}>
+                  <Link
+                    href={`/kegiatan/detail?id=${a.id}`}
+                    aria-label={`${a.title}, ${formatTanggalPanjang(a.startDate)}`}
+                    className="flex -outline-offset-2 hover:bg-pulpen-50 active:bg-pulpen-100"
+                  >
+                    <span aria-hidden className="kolom-tanggal w-14 shrink-0 py-3 text-center">
+                      <span className="block font-display text-2xl leading-none font-bold">
+                        {Number(a.startDate.slice(8))}
+                      </span>
+                      <span className="mt-1 block text-xs text-tinta-pudar">
+                        {BULAN_PENDEK[Number(a.startDate.slice(5, 7)) - 1]}
+                        {a.startDate.slice(0, 4) !== today.slice(0, 4) &&
+                          ` ${a.startDate.slice(2, 4)}`}
+                      </span>
                     </span>
-                    <span className="mt-1.5 flex flex-wrap gap-1.5">
-                      <Badge
-                        tone={
-                          a.status === "berjalan"
-                            ? "daun"
-                            : a.status === "selesai"
-                              ? "netral"
-                              : "terong"
-                        }
-                      >
-                        {ACTIVITY_STATUS_LABEL[a.status]}
-                      </Badge>
-                      {(hadirCounts?.get(a.id) ?? 0) > 0 && (
-                        <Badge tone="daun">{hadirCounts?.get(a.id)} hadir</Badge>
+                    <span className="min-w-0 flex-1 px-3 py-3">
+                      <span className="block font-bold">{a.title}</span>
+                      {a.location && (
+                        <span className="mt-0.5 flex items-center gap-1 text-sm text-tinta-pudar">
+                          <IconMapPin className="size-3.5" />
+                          <span className="truncate">{a.location}</span>
+                        </span>
                       )}
+                      <span className="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
+                        <Badge
+                          tone={
+                            a.status === "berjalan"
+                              ? "stempel"
+                              : a.status === "selesai"
+                                ? "netral"
+                                : "pulpen"
+                          }
+                        >
+                          {ACTIVITY_STATUS_LABEL[a.status]}
+                        </Badge>
+                        {hadir > 0 && (
+                          <span className="font-bold text-stempel-700">{hadir} hadir</span>
+                        )}
+                      </span>
                     </span>
-                  </span>
-                  <IconChevronRight className="size-5 shrink-0 text-tinta-lembut" />
-                </Link>
-              </li>
-            ))}
+                    <IconChevronRight className="mr-3 size-4 self-center text-tinta-pudar" />
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

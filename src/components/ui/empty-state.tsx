@@ -1,27 +1,34 @@
 import type { ReactNode } from "react";
 
-/** Layar kosong = ajakan bertindak, bukan sekadar "tidak ada data". */
+/** Layar kosong = halaman buku yang belum ditulisi, dengan ajakan mengisi baris pertama. */
 export function EmptyState({
-  icon,
   title,
   hint,
   action,
 }: {
-  icon?: ReactNode;
   title: string;
   hint?: string;
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-      {icon && (
-        <div className="grid size-14 place-items-center rounded-full bg-daun-100 text-daun-700">
-          {icon}
+    <div className="lembar flex flex-col items-start gap-2 border-dashed px-5 py-7 shadow-none">
+      <p className="font-display text-lg font-bold">{title}</p>
+      {hint && <p className="max-w-sm text-tinta-pudar">{hint}</p>}
+      {action && <div className="mt-2">{action}</div>}
+    </div>
+  );
+}
+
+/** Pengganti daftar saat data lokal sedang dibuka: baris bergaris yang masih kosong. */
+export function ListSkeleton({ rows = 4 }: { rows?: number }) {
+  return (
+    <div role="status" aria-label="Membuka data" className="lembar divide-y divide-garis px-4">
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="flex min-h-16 items-center justify-between gap-6">
+          <span className="baris-tunggu" style={{ width: `${55 - i * 7}%` }} />
+          <span className="baris-tunggu w-16" />
         </div>
-      )}
-      <p className="text-lg font-semibold">{title}</p>
-      {hint && <p className="max-w-xs text-tinta-lembut">{hint}</p>}
-      {action}
+      ))}
     </div>
   );
 }

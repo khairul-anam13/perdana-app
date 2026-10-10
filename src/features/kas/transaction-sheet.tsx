@@ -28,7 +28,7 @@ function ReceiptImage({ id }: { id: string }) {
       <img
         src={localUrl}
         alt="Foto nota"
-        className="max-h-80 w-full rounded-xl border border-garis object-contain"
+        className="max-h-80 w-full rounded-md border border-garis object-contain"
       />
     );
   if (receipt?.status === "terunggah" && online)
@@ -37,11 +37,11 @@ function ReceiptImage({ id }: { id: string }) {
       <img
         src={`/api/receipts/${id}`}
         alt="Foto nota"
-        className="max-h-80 w-full rounded-xl border border-garis object-contain"
+        className="max-h-80 w-full rounded-md border border-garis object-contain"
       />
     );
   return (
-    <p className="rounded-xl bg-garis/60 p-3 text-sm text-tinta-lembut">
+    <p className="rounded-md bg-garis/60 p-3 text-sm text-tinta-pudar">
       Foto nota tersimpan di server. Tampil saat HP online.
     </p>
   );
@@ -87,42 +87,42 @@ export function TransactionSheet({
         setConfirming(false);
         onClose();
       }}
-      title={tx ? `${TX_LABEL[tx.type]} · ${tx.category}` : ""}
+      title={tx ? `${TX_LABEL[tx.type]}: ${tx.category}` : ""}
     >
       {tx && (
         <div className="flex flex-col gap-4">
           <p
-            className={`text-3xl font-bold tabular-nums ${tx.type === "pemasukan" ? "text-daun-700" : "text-bata-700"}`}
+            className={`text-3xl font-bold ${tx.type === "pemasukan" ? "text-pulpen-600" : "text-merah-700"}`}
           >
             {tx.type === "pemasukan" ? "+" : "−"} {formatRupiah(tx.amount)}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {tx.reversesTransactionId && <Badge>Transaksi koreksi</Badge>}
-            {reversed.has(tx.id) && <Badge tone="padi">Sudah dikoreksi</Badge>}
-            {pending && <Badge tone="padi">Menunggu dikirim</Badge>}
+            {reversed.has(tx.id) && <Badge tone="stabilo">Sudah dikoreksi</Badge>}
+            {pending && <Badge tone="stabilo">Menunggu dikirim</Badge>}
           </div>
           <dl className="grid grid-cols-[7rem_1fr] gap-x-3 gap-y-2.5 text-sm">
-            <dt className="text-tinta-lembut">Tanggal</dt>
+            <dt className="text-tinta-pudar">Tanggal</dt>
             <dd className="font-medium">{formatTanggalPanjang(tx.transactionDate)}</dd>
             {tx.note && (
               <>
-                <dt className="text-tinta-lembut">Keterangan</dt>
+                <dt className="text-tinta-pudar">Keterangan</dt>
                 <dd className="font-medium">{tx.note}</dd>
               </>
             )}
             {memberName && (
               <>
-                <dt className="text-tinta-lembut">Anggota</dt>
+                <dt className="text-tinta-pudar">Anggota</dt>
                 <dd className="font-medium">{memberName}</dd>
               </>
             )}
             {activityTitle && (
               <>
-                <dt className="text-tinta-lembut">Kegiatan</dt>
+                <dt className="text-tinta-pudar">Kegiatan</dt>
                 <dd className="font-medium">{activityTitle}</dd>
               </>
             )}
-            <dt className="text-tinta-lembut">Dicatat</dt>
+            <dt className="text-tinta-pudar">Dicatat</dt>
             <dd className="font-medium">{formatWaktu(tx.createdAt)}</dd>
           </dl>
 
@@ -130,9 +130,9 @@ export function TransactionSheet({
 
           {allowReverse &&
             (confirming ? (
-              <div className="rounded-2xl bg-padi-50 p-4 ring-1 ring-padi-200">
-                <p className="font-semibold">Buat transaksi koreksi?</p>
-                <p className="mt-1 text-sm text-tinta-lembut">
+              <div className="rounded-lg bg-stabilo-100 p-4 ring-1 ring-stabilo-300">
+                <p className="font-bold">Buat transaksi koreksi?</p>
+                <p className="mt-1 text-sm text-tinta-pudar">
                   Transaksi ini tidak diubah atau dihapus. Sebuah transaksi pembalik sebesar{" "}
                   {formatRupiah(tx.amount)} akan ditambahkan supaya saldo kembali benar.
                 </p>

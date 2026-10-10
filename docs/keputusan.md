@@ -94,7 +94,7 @@ penyimpanan tambahan. Pindah ke object storage bila volume membesar.
   Pindah ke Pro/Duotone nanti = ubah berkas itu (dan setup paket), bukan puluhan halaman.
 - CSS Font Awesome dimuat dengan `@import ... layer(components)` di `globals.css` agar kelas ukuran Tailwind menang atas
   `height:1em` bawaan FA. Tanpa ini ikon `size-5` tampil 1em. Ikon diberi `shrink-0` supaya tidak menyusut di baris flex.
-- Ciri khas visual: ubin ikon berwarna per modul (judul halaman dan navigasi memakai ikon + warna yang sama).
+- Ciri khas visual ada di `globals.css` (arah "Buku Kas Folio"): kolom tanggal bergaris merah ganda, jumlah bergaris bawah ganda, stempel LUNAS, coretan stabilo. Ikon hanya dipakai bila membantu fungsi (navigasi, aksi), bukan hiasan.
 
 ## Alat dan versi
 

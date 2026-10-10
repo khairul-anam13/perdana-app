@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import { IconArrowDown, IconArrowUp, IconCamera, IconSync } from "@/components/ui/icons";
-import { formatRupiah } from "@/lib/format/rupiah";
+import { IconCamera } from "@/components/ui/icons";
+import { formatAngka, formatRupiah } from "@/lib/format/rupiah";
 import type { Transaction } from "./schema";
 
 export function TransactionRow({
@@ -8,54 +8,53 @@ export function TransactionRow({
   reversed,
   pending,
   detail,
+  saldo,
   onOpen,
 }: {
   tx: Transaction;
   reversed: boolean;
   pending: boolean;
   detail?: string;
+  /** saldo kas setelah transaksi ini, seperti kolom saldo di buku kas */
+  saldo?: number;
   onOpen: () => void;
 }) {
   const income = tx.type === "pemasukan";
-  const Icon = income ? IconArrowDown : IconArrowUp;
+  const voided = reversed || !!tx.reversesTransactionId;
   return (
     <li>
       <button
         type="button"
         onClick={onOpen}
-        className="flex min-h-16 w-full items-center gap-3 px-1 py-2.5 text-left hover:bg-daun-50/70 active:bg-daun-50"
+        className="flex min-h-16 w-full items-start gap-3 px-3 py-2.5 text-left -outline-offset-2 hover:bg-pulpen-50 active:bg-pulpen-100"
       >
-        <span
-          className={`grid size-11 shrink-0 place-items-center rounded-full ${income ? "bg-daun-100 text-daun-700" : "bg-bata-100 text-bata-700"}`}
-        >
-          <Icon className="size-5" />
-        </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold">{tx.category}</span>
-          <span className="block truncate text-sm text-tinta-lembut">
+          <span className="block truncate font-bold">{tx.category}</span>
+          <span className="block truncate text-sm text-tinta-pudar">
             {detail || tx.note || "Tanpa keterangan"}
           </span>
-          {(tx.reversesTransactionId || reversed || pending || tx.receiptId) && (
-            <span className="mt-1 flex flex-wrap items-center gap-1">
+          {(voided || pending || tx.receiptId) && (
+            <span className="mt-1 flex flex-wrap items-center gap-1.5">
               {tx.reversesTransactionId && <Badge>Koreksi</Badge>}
-              {reversed && <Badge tone="padi">Sudah dikoreksi</Badge>}
-              {pending && (
-                <Badge tone="padi">
-                  <IconSync className="size-3" /> Menunggu kirim
-                </Badge>
-              )}
+              {reversed && <Badge>Sudah dikoreksi</Badge>}
+              {pending && <span className="stabilo text-xs font-bold">Menunggu kirim</span>}
               {tx.receiptId && (
-                <Badge tone="air">
+                <Badge tone="pulpen">
                   <IconCamera className="size-3" /> Nota
                 </Badge>
               )}
             </span>
           )}
         </span>
-        <span
-          className={`shrink-0 text-right font-bold tabular-nums ${income ? "text-daun-700" : "text-bata-700"} ${reversed || tx.reversesTransactionId ? "opacity-60" : ""}`}
-        >
-          {income ? "+" : "−"} {formatRupiah(tx.amount)}
+        <span className="shrink-0 text-right">
+          <span
+            className={`block font-bold ${income ? "text-pulpen-600" : "text-merah-600"} ${voided ? "line-through" : ""}`}
+          >
+            {income ? "+" : "−"} {formatRupiah(tx.amount)}
+          </span>
+          {saldo !== undefined && (
+            <span className="block text-xs text-tinta-pudar">Saldo {formatAngka(saldo)}</span>
+          )}
         </span>
       </button>
     </li>

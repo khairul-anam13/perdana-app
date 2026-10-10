@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field, Input, Select } from "@/components/ui/field";
-import { IconOffline, IconPlus, IconUsers } from "@/components/ui/icons";
+import { IconPlus } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/page-header";
 import { Sheet } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/toast";
@@ -77,8 +77,8 @@ export default function PenggunaPage() {
   if (!user || !canManageUsers(user.role))
     return (
       <>
-        <PageHeader module="akun" title="Kelola pengguna" back={{ href: "/akun", label: "Akun" }} />
-        <EmptyState icon={<IconUsers />} title="Hanya Ketua yang bisa mengelola pengguna" />
+        <PageHeader title="Kelola pengguna" back={{ href: "/akun", label: "Akun" }} />
+        <EmptyState title="Hanya Ketua yang bisa mengelola pengguna" />
       </>
     );
 
@@ -89,7 +89,6 @@ export default function PenggunaPage() {
   return (
     <>
       <PageHeader
-        module="akun"
         title="Kelola pengguna"
         subtitle="Akun yang bisa masuk ke aplikasi."
         back={{ href: "/akun", label: "Akun" }}
@@ -102,30 +101,29 @@ export default function PenggunaPage() {
 
       {!online ? (
         <EmptyState
-          icon={<IconOffline />}
           title="Butuh internet"
           hint="Mengelola akun hanya bisa saat online, supaya PIN tersimpan aman di server."
         />
       ) : error ? (
-        <p role="alert" className="rounded-2xl bg-bata-50 p-4 font-medium text-bata-700">
+        <p role="alert" className="rounded-lg bg-merah-50 p-4 font-medium text-merah-700">
           {error}
         </p>
       ) : users === null ? (
-        <p className="py-10 text-center text-tinta-lembut">Memuat…</p>
+        <p className="py-10 text-center text-tinta-pudar">Memuat…</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {users.map((u) => {
             const self = u.id === user.id;
             return (
-              <li key={u.id} className="rounded-3xl bg-white p-4 ring-1 ring-garis">
+              <li key={u.id} className="lembar p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold">{u.memberName ?? u.username}</p>
-                    <p className="truncate text-sm text-tinta-lembut">@{u.username}</p>
+                    <p className="truncate font-bold">{u.memberName ?? u.username}</p>
+                    <p className="truncate text-sm text-tinta-pudar">@{u.username}</p>
                   </div>
                   <div className="flex flex-wrap justify-end gap-1.5">
-                    {self && <Badge tone="air">Anda</Badge>}
-                    {!u.active && <Badge tone="bata">Nonaktif</Badge>}
+                    {self && <Badge tone="pulpen">Anda</Badge>}
+                    {!u.active && <Badge tone="merah">Nonaktif</Badge>}
                   </div>
                 </div>
                 <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
@@ -147,7 +145,7 @@ export default function PenggunaPage() {
                   <Button
                     variant={u.active ? "ghost" : "secondary"}
                     disabled={self}
-                    className={u.active ? "text-bata-700" : ""}
+                    className={u.active ? "text-merah-700" : ""}
                     onClick={() =>
                       patch(
                         u,
@@ -271,7 +269,7 @@ function AddUserForm({
         )}
       </Field>
       {error && (
-        <p role="alert" className="rounded-xl bg-bata-50 p-3 text-sm font-medium text-bata-700">
+        <p role="alert" className="rounded-md bg-merah-50 p-3 text-sm font-medium text-merah-700">
           {error}
         </p>
       )}

@@ -61,28 +61,28 @@ export function InstallHint({ dismissible = false }: { dismissible?: boolean }) 
   return (
     <section
       aria-label="Pasang aplikasi"
-      className="rounded-3xl bg-padi-100 p-4 ring-1 ring-padi-200"
+      className="rounded-lg bg-stabilo-100 p-4 ring-1 ring-stabilo-300"
     >
-      <h2 className="flex items-center gap-2 font-semibold text-padi-800">
+      <h2 className="flex items-center gap-2 font-bold text-stabilo-800">
         {mode === "ios" ? <IconApple className="size-5" /> : <IconAndroid className="size-5" />}
         Pasang Perdana di layar utama
       </h2>
       {mode === "ios" ? (
-        <p className="mt-1 text-sm text-padi-800">
+        <p className="mt-1 text-sm text-stabilo-800">
           Di iPhone: ketuk tombol <IconShare className="mx-0.5 inline size-4 align-text-bottom" />{" "}
           <b>Bagikan</b> di Safari, lalu pilih <b>Tambah ke Layar Utama</b>. Data offline jadi lebih
           awet.
         </p>
       ) : (
-        <p className="mt-1 text-sm text-padi-800">
+        <p className="mt-1 text-sm text-stabilo-800">
           Pasang supaya terbuka seperti aplikasi biasa dan bisa dipakai tanpa internet.
         </p>
       )}
       <div className="mt-3 flex gap-2">
         {mode === "android" && event && (
           <Button
-            variant="padi"
-            className="bg-padi-400 hover:bg-padi-300"
+            variant="primary"
+            className="bg-stabilo-300 hover:bg-stabilo-300"
             onClick={async () => {
               await event.prompt();
               await event.userChoice;
@@ -94,7 +94,7 @@ export function InstallHint({ dismissible = false }: { dismissible?: boolean }) 
           </Button>
         )}
         {dismissible && (
-          <Button variant="ghost" onClick={dismiss} className="text-padi-800">
+          <Button variant="ghost" onClick={dismiss} className="text-stabilo-800">
             Nanti saja
           </Button>
         )}

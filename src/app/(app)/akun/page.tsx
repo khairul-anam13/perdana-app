@@ -45,8 +45,8 @@ function describe(i: OutboxItem): string {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-2.5">
-      <dt className="text-tinta-lembut">{label}</dt>
-      <dd className="text-right font-semibold">{children}</dd>
+      <dt className="text-tinta-pudar">{label}</dt>
+      <dd className="text-right font-bold">{children}</dd>
     </div>
   );
 }
@@ -82,37 +82,30 @@ export default function AkunPage() {
 
   return (
     <>
-      <PageHeader module="akun" title="Akun" />
+      <PageHeader title="Akun" />
       <div className="flex flex-col gap-5">
-        <section
-          className="flex items-center gap-4 rounded-3xl bg-white p-4 ring-1 ring-garis"
-          aria-label="Profil"
-        >
+        <section className="lembar flex items-center gap-4 p-4" aria-label="Profil">
           <span
             aria-hidden
-            className="grid size-14 shrink-0 place-items-center rounded-full bg-daun-700 text-xl font-bold text-white"
+            className="grid size-14 shrink-0 place-items-center rounded-md bg-sampul font-display text-xl font-bold text-white"
           >
             {user.name.slice(0, 1).toUpperCase()}
           </span>
           <div className="min-w-0">
             <p className="truncate text-lg font-bold">{user.name}</p>
-            <p className="truncate text-sm text-tinta-lembut">
+            <p className="truncate text-sm text-tinta-pudar">
               @{user.username}
-              {org ? ` · ${org.name}` : ""}
+              {org ? `, ${org.name}` : ""}
             </p>
             <div className="mt-1.5">
-              <Badge tone="daun">{ROLE_LABEL[user.role]}</Badge>
+              <Badge tone="stempel">{ROLE_LABEL[user.role]}</Badge>
             </div>
           </div>
         </section>
 
-        <section
-          id="sinkron"
-          aria-label="Sinkronisasi"
-          className="scroll-mt-20 rounded-3xl bg-white p-4 ring-1 ring-garis"
-        >
-          <h2 className="mb-1 text-lg font-bold tracking-tight">Sinkronisasi</h2>
-          <p className="text-sm text-tinta-lembut">
+        <section id="sinkron" aria-label="Sinkronisasi" className="lembar scroll-mt-20 p-4">
+          <h2 className="mb-1 font-display text-lg font-bold">Sinkronisasi</h2>
+          <p className="text-sm text-tinta-pudar">
             Data disimpan di HP dulu, lalu dikirim ke server saat ada internet.
           </p>
           <dl className="mt-2 divide-y divide-garis">
@@ -128,7 +121,7 @@ export default function AkunPage() {
           {s.lastError && !s.syncing && (
             <p
               role="alert"
-              className="mt-2 rounded-xl bg-bata-50 p-3 text-sm font-medium text-bata-700"
+              className="mt-2 rounded-md bg-merah-50 p-3 text-sm font-medium text-merah-700"
             >
               {s.lastError.replace(/\.$/, "")}. Data tetap aman di HP dan akan dicoba lagi otomatis.
             </p>
@@ -140,14 +133,14 @@ export default function AkunPage() {
 
           {attention.length > 0 && (
             <div className="mt-4">
-              <h3 className="mb-2 font-semibold">Perlu perhatian</h3>
+              <h3 className="mb-2 font-bold">Perlu perhatian</h3>
               <ul className="flex flex-col gap-2">
                 {attention.map((i) => (
-                  <li key={i.id} className="rounded-2xl bg-bata-50 p-3 ring-1 ring-bata-100">
-                    <p className="text-sm font-semibold">
+                  <li key={i.id} className="rounded-lg bg-merah-50 p-3 ring-1 ring-merah-100">
+                    <p className="text-sm font-bold">
                       {ENTITY_LABEL[i.entity]} {OP_LABEL[i.op]}: {describe(i)}
                     </p>
-                    <p className="mt-0.5 text-sm text-bata-700">{i.lastError}</p>
+                    <p className="mt-0.5 text-sm text-merah-700">{i.lastError}</p>
                     {i.status === "ditolak" ? (
                       <Button
                         size="sm"
@@ -158,7 +151,7 @@ export default function AkunPage() {
                         Buang perubahan ini
                       </Button>
                     ) : (
-                      <p className="mt-0.5 text-xs text-tinta-lembut">
+                      <p className="mt-0.5 text-xs text-tinta-pudar">
                         Dicoba {i.attempts}×, akan diulang otomatis.
                       </p>
                     )}
@@ -169,12 +162,12 @@ export default function AkunPage() {
           )}
         </section>
 
-        <section aria-label="Penyimpanan" className="rounded-3xl bg-white p-4 ring-1 ring-garis">
-          <h2 className="mb-1 text-lg font-bold tracking-tight">Penyimpanan di HP</h2>
-          <p className="text-sm text-tinta-lembut">
+        <section aria-label="Penyimpanan" className="lembar p-4">
+          <h2 className="mb-1 font-display text-lg font-bold">Penyimpanan di HP</h2>
+          <p className="text-sm text-tinta-pudar">
             Penyimpanan permanen mencegah browser menghapus data offline saat memori HP penuh.
           </p>
-          <p className="mt-2 font-semibold">
+          <p className="mt-2 font-bold">
             {persisted === null ? "Tidak diketahui" : persisted ? "Aktif" : "Belum aktif"}
           </p>
           {persisted === false && (
@@ -200,9 +193,9 @@ export default function AkunPage() {
         )}
 
         {confirmLogout ? (
-          <div className="rounded-3xl bg-bata-50 p-4 ring-1 ring-bata-100">
-            <p className="font-semibold text-bata-700">Keluar dari akun?</p>
-            <p className="mt-1 text-sm text-tinta-lembut">
+          <div className="rounded-lg bg-merah-50 p-4 ring-1 ring-merah-100">
+            <p className="font-bold text-merah-700">Keluar dari akun?</p>
+            <p className="mt-1 text-sm text-tinta-pudar">
               {s.waiting > 0
                 ? `Ada ${s.waiting} data yang belum terkirim. Data tetap aman di HP dan terkirim saat Anda masuk lagi dengan akun yang sama.`
                 : "Data di HP tetap tersimpan. Masuk lagi butuh internet."}
@@ -227,7 +220,7 @@ export default function AkunPage() {
             variant="ghost"
             size="lg"
             onClick={() => setConfirmLogout(true)}
-            className="text-bata-700"
+            className="text-merah-700"
           >
             <IconLogout className="size-5" /> Keluar
           </Button>

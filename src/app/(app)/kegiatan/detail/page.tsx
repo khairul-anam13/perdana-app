@@ -5,15 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import {
-  IconCalendar,
-  IconCheck,
-  IconEnvelope,
-  IconMapPin,
-  IconSync,
-  IconX,
-} from "@/components/ui/icons";
+import { EmptyState, ListSkeleton } from "@/components/ui/empty-state";
+import { IconMapPin, IconUser } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/page-header";
 import { useToast } from "@/components/ui/toast";
 import { usePerm } from "@/lib/auth/use-perm";
@@ -33,50 +26,49 @@ import { summarize } from "@/features/kas/ledger";
 import { useLedger } from "@/features/kas/use-ledger";
 import { useLookups } from "@/features/use-lookups";
 
-const STATUS_ICON = { hadir: IconCheck, izin: IconEnvelope, alpa: IconX } as const;
-
+/** Huruf H / I / A seperti di daftar hadir kertas. Warna mengikuti arti di seluruh aplikasi. */
 const STATUS_STYLE: Record<AttendanceStatus, string> = {
-  hadir: "bg-daun-700 text-white ring-daun-700",
-  izin: "bg-padi-300 text-tinta ring-padi-300",
-  alpa: "bg-bata-600 text-white ring-bata-600",
+  hadir: "border-stempel-700 bg-stempel-600 text-white",
+  izin: "border-stabilo-800 bg-stabilo-300 text-tinta",
+  alpa: "border-merah-700 bg-merah-600 text-white",
+};
+const STATUS_TEXT: Record<AttendanceStatus, string> = {
+  hadir: "text-stempel-700",
+  izin: "text-stabilo-800",
+  alpa: "text-merah-700",
 };
 
 function AttendanceControl({
   name,
   value,
-  options = ATTENDANCE_STATUSES,
   disabled,
   onSet,
 }: {
   name: string;
   value?: AttendanceStatus;
-  options?: readonly AttendanceStatus[];
   disabled?: boolean;
   onSet: (s: AttendanceStatus) => void;
 }) {
   return (
-    <div
-      role="radiogroup"
-      aria-label={`Absensi ${name}`}
-      className="grid auto-cols-fr grid-flow-col gap-1.5"
-    >
-      {options.map((s) => {
+    <div role="radiogroup" aria-label={`Absensi ${name}`} className="flex shrink-0 gap-1.5">
+      {ATTENDANCE_STATUSES.map((s) => {
         const active = value === s;
-        const Icon = STATUS_ICON[s];
         return (
           <button
             key={s}
             type="button"
             role="radio"
             aria-checked={active}
+            aria-label={ATTENDANCE_LABEL[s]}
             disabled={disabled}
             onClick={() => onSet(s)}
-            className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-semibold ring-1 transition-colors disabled:opacity-50 ${
-              active ? STATUS_STYLE[s] : "bg-white ring-garis-kuat hover:bg-terong-50"
+            className={`grid size-11 place-items-center rounded-md border font-display text-lg font-bold transition-colors disabled:opacity-50 ${
+              active
+                ? STATUS_STYLE[s]
+                : "border-garis-kuat bg-lembar text-tinta-pudar hover:bg-pulpen-50 active:bg-pulpen-100"
             }`}
           >
-            <Icon className="size-4" />
-            {ATTENDANCE_LABEL[s]}
+            {ATTENDANCE_LABEL[s][0]}
           </button>
         );
       })}
@@ -90,6 +82,7 @@ function Detail() {
   const toast = useToast();
   const { user, can, readOnly } = usePerm();
   const [sheet, setSheet] = useState<ActivitySheetState>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const activity = useLiveQuery(
     async () => (id ? ((await db.activities.get(id)) ?? null) : null),
@@ -104,10 +97,10 @@ function Detail() {
     () => new Map((attendances ?? []).map((a) => [a.memberId, a])),
     [attendances],
   );
-  const roster = useMemo(() => {
-    const active = members.filter((m) => m.status === "aktif" || byMember.has(m.id));
-    return active;
-  }, [members, byMember]);
+  const roster = useMemo(
+    () => members.filter((m) => m.status === "aktif" || byMember.has(m.id)),
+    [members, byMember],
+  );
   const counts = useMemo(() => {
     const c = { hadir: 0, izin: 0, alpa: 0 };
     for (const a of attendances ?? []) c[a.status]++;
@@ -118,31 +111,54 @@ function Detail() {
 
   if (!id || activity === null)
     return (
-      <EmptyState
-        icon={<IconCalendar />}
-        title="Kegiatan tidak ditemukan"
-        hint="Mungkin sudah dihapus atau datanya belum terunduh."
-        action={<ButtonLink href="/kegiatan">Ke daftar kegiatan</ButtonLink>}
-      />
+      <div className="pt-6">
+        <EmptyState
+          title="Kegiatan tidak ditemukan"
+          hint="Mungkin sudah dihapus, atau datanya belum terunduh ke HP ini."
+          action={<ButtonLink href="/kegiatan">Ke daftar kegiatan</ButtonLink>}
+        />
+      </div>
     );
   if (activity === undefined || lookupsLoading)
-    return <p className="py-10 text-center text-tinta-lembut">Membuka data…</p>;
+    return (
+      <div className="pt-6">
+        <ListSkeleton rows={6} />
+      </div>
+    );
 
   const pengurus = can("activity");
   const myMemberId = user?.memberId ?? null;
+  const mine = myMemberId ? byMember.get(myMemberId) : undefined;
   const leader = activity.leaderId ? memberName.get(activity.leaderId) : null;
-  const unrecorded = roster.filter((m) => !byMember.has(m.id)).length;
+  const unrecorded = roster.filter((m) => !byMember.has(m.id));
 
+  // Tanpa toast per ketukan: tombol yang menyala dan tanda "Menunggu kirim" sudah jadi jawabannya.
   async function mark(memberId: string, status: AttendanceStatus) {
     if (!user || !activity) return;
-    const changeId = await setAttendance(activity.id, memberId, status, user);
-    toast.saved([changeId]);
+    try {
+      await setAttendance(activity.id, memberId, status, user);
+    } catch {
+      toast.show("Absensi gagal tersimpan di HP. Coba lagi.", "error");
+    }
+  }
+
+  async function markRestPresent() {
+    if (!user || !activity) return;
+    setBulkBusy(true);
+    try {
+      const ids: string[] = [];
+      for (const m of unrecorded) ids.push(await setAttendance(activity.id, m.id, "hadir", user));
+      toast.saved(ids);
+    } catch {
+      toast.show("Sebagian absensi gagal tersimpan. Coba lagi.", "error");
+    } finally {
+      setBulkBusy(false);
+    }
   }
 
   return (
     <>
       <PageHeader
-        module="kegiatan"
         title={activity.title}
         back={{ href: "/kegiatan", label: "Kegiatan" }}
         actions={
@@ -158,75 +174,80 @@ function Detail() {
         }
       />
 
-      <div className="flex flex-col gap-5">
-        <section
-          className="rounded-3xl bg-terong-50 p-5 ring-1 ring-terong-100"
-          aria-label="Info kegiatan"
-        >
-          <div className="mb-3 flex flex-wrap gap-1.5">
+      <div className="flex flex-col gap-6">
+        <section aria-label="Info kegiatan" className="-mt-2 flex flex-col gap-1">
+          <p className="flex flex-wrap items-center gap-2 font-bold">
+            {formatTanggalPanjang(activity.startDate)}
+            {activity.endDate && activity.endDate !== activity.startDate
+              ? ` sampai ${formatTanggalPanjang(activity.endDate)}`
+              : ""}
             <Badge
               tone={
                 activity.status === "berjalan"
-                  ? "daun"
+                  ? "stempel"
                   : activity.status === "selesai"
                     ? "netral"
-                    : "terong"
+                    : "pulpen"
               }
             >
               {ACTIVITY_STATUS_LABEL[activity.status]}
             </Badge>
-          </div>
-          <p className="font-semibold">
-            {formatTanggalPanjang(activity.startDate)}
-            {activity.endDate && activity.endDate !== activity.startDate
-              ? ` – ${formatTanggalPanjang(activity.endDate)}`
-              : ""}
           </p>
           {activity.location && (
-            <p className="mt-1 flex items-center gap-1.5 text-tinta-lembut">
-              <IconMapPin className="size-4 shrink-0" /> {activity.location}
+            <p className="flex items-center gap-1.5 text-tinta-pudar">
+              <IconMapPin className="size-4" /> {activity.location}
             </p>
           )}
-          {leader && <p className="mt-1 text-tinta-lembut">Penanggung jawab: {leader}</p>}
-          {activity.description && (
-            <p className="mt-3 whitespace-pre-line">{activity.description}</p>
+          {leader && (
+            <p className="flex items-center gap-1.5 text-tinta-pudar">
+              <IconUser className="size-4" /> Penanggung jawab: {leader}
+            </p>
           )}
-        </section>
-
-        <section aria-label="Ringkasan absensi" className="grid grid-cols-4 gap-2 text-center">
-          {[
-            { label: "Hadir", n: counts.hadir, cls: "bg-daun-100 text-daun-800" },
-            { label: "Izin", n: counts.izin, cls: "bg-padi-100 text-padi-800" },
-            { label: "Alpa", n: counts.alpa, cls: "bg-bata-100 text-bata-700" },
-            { label: "Belum", n: unrecorded, cls: "bg-garis text-tinta-lembut" },
-          ].map((c) => (
-            <div key={c.label} className={`rounded-2xl px-1 py-3 ${c.cls}`}>
-              <p className="text-2xl font-bold tabular-nums">{c.n}</p>
-              <p className="text-xs font-semibold">{c.label}</p>
-            </div>
-          ))}
+          {activity.description && (
+            <p className="mt-2 max-w-prose whitespace-pre-line">{activity.description}</p>
+          )}
         </section>
 
         {!pengurus && (
-          <section className="rounded-3xl bg-white p-4 ring-1 ring-garis" aria-label="Absen saya">
-            <h2 className="mb-1 font-semibold">Absen saya</h2>
+          <section
+            aria-labelledby="absen-saya"
+            className="lembar border-l-[6px] border-l-pulpen-600 p-4"
+          >
+            <h2 id="absen-saya" className="font-display text-lg font-bold">
+              Absen saya
+            </h2>
             {myMemberId ? (
               <>
-                <p className="mb-3 text-sm text-tinta-lembut">
-                  {byMember.get(myMemberId)
-                    ? `Tercatat: ${ATTENDANCE_LABEL[byMember.get(myMemberId)!.status]}`
-                    : "Belum absen. Bisa dilakukan tanpa internet."}
+                <p className="mt-0.5 mb-3 text-sm text-tinta-pudar">
+                  {mine ? (
+                    <>
+                      Tercatat:{" "}
+                      <b className={STATUS_TEXT[mine.status]}>{ATTENDANCE_LABEL[mine.status]}</b>
+                      {pending.has(mine.id) && (
+                        <span className="stabilo ml-2 font-bold text-tinta">Menunggu kirim</span>
+                      )}
+                    </>
+                  ) : (
+                    "Anda belum absen. Bisa diisi tanpa internet."
+                  )}
                 </p>
-                <AttendanceControl
-                  name="saya"
-                  value={byMember.get(myMemberId)?.status}
-                  options={["hadir", "izin"]}
-                  disabled={readOnly}
-                  onSet={(s) => mark(myMemberId, s)}
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  {(["hadir", "izin"] as const).map((s) => (
+                    <Button
+                      key={s}
+                      size="lg"
+                      variant={mine?.status === s ? "primary" : "secondary"}
+                      aria-pressed={mine?.status === s}
+                      disabled={readOnly}
+                      onClick={() => mark(myMemberId, s)}
+                    >
+                      Saya {s}
+                    </Button>
+                  ))}
+                </div>
               </>
             ) : (
-              <p className="text-sm text-tinta-lembut">
+              <p className="mt-1 text-sm text-tinta-pudar">
                 Akun Anda belum terhubung ke data anggota. Minta Sekretaris atau Ketua
                 menghubungkannya.
               </p>
@@ -234,46 +255,88 @@ function Detail() {
           </section>
         )}
 
-        <section aria-label="Daftar absensi">
-          <h2 className="mb-2 text-lg font-bold tracking-tight">
-            {pengurus ? "Absensi" : "Yang hadir"}
-          </h2>
+        <section aria-labelledby="absensi">
+          <div className="mb-2 flex items-end justify-between gap-3">
+            <h2 id="absensi" className="font-display text-lg font-bold">
+              {pengurus ? "Daftar hadir" : "Kehadiran"}
+            </h2>
+          </div>
+
+          <dl className="mb-3 grid grid-cols-4 divide-x divide-garis border-y border-garis py-2 text-center">
+            {(
+              [
+                ["Hadir", counts.hadir, STATUS_TEXT.hadir],
+                ["Izin", counts.izin, STATUS_TEXT.izin],
+                ["Alpa", counts.alpa, STATUS_TEXT.alpa],
+                ["Belum", unrecorded.length, "text-tinta-pudar"],
+              ] as const
+            ).map(([label, n, cls]) => (
+              <div key={label} className="flex flex-col-reverse">
+                <dt className="text-xs text-tinta-pudar">{label}</dt>
+                <dd className={`font-display text-2xl leading-tight font-bold ${cls}`}>{n}</dd>
+              </div>
+            ))}
+          </dl>
+
+          {pengurus && unrecorded.length > 0 && roster.length > 0 && (
+            <Button
+              variant="secondary"
+              block
+              className="mb-3"
+              onClick={markRestPresent}
+              loading={bulkBusy}
+              disabled={readOnly}
+            >
+              {unrecorded.length === roster.length
+                ? `Tandai semua ${roster.length} orang hadir`
+                : `Tandai ${unrecorded.length} sisanya hadir`}
+            </Button>
+          )}
+
           {roster.length === 0 ? (
-            <p className="rounded-2xl bg-white p-4 text-tinta-lembut ring-1 ring-garis">
-              Belum ada anggota aktif.
-            </p>
+            <EmptyState
+              title="Belum ada anggota aktif"
+              hint="Daftar hadir dibuat dari anggota aktif."
+              action={
+                <ButtonLink href="/anggota" variant="secondary">
+                  Buka daftar anggota
+                </ButtonLink>
+              }
+            />
           ) : (
-            <ul className="divide-y divide-garis rounded-2xl bg-white px-4 ring-1 ring-garis">
+            <ul className="lembar divide-y divide-garis overflow-hidden">
+              {pengurus && (
+                <li aria-hidden className="flex justify-end gap-1.5 bg-kertas px-3 py-1">
+                  {ATTENDANCE_STATUSES.map((s) => (
+                    <span key={s} className="w-11 text-center text-xs font-bold text-tinta-pudar">
+                      {ATTENDANCE_LABEL[s]}
+                    </span>
+                  ))}
+                </li>
+              )}
               {roster.map((m) => {
                 const a = byMember.get(m.id);
                 return (
-                  <li key={m.id} className="py-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="min-w-0 truncate font-medium">{m.fullName}</p>
+                  <li key={m.id} className="flex min-h-14 items-center gap-3 px-3 py-1.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-bold">{m.fullName}</p>
                       {a && pending.has(a.id) && (
-                        <Badge tone="padi">
-                          <IconSync className="size-3" /> Menunggu kirim
-                        </Badge>
-                      )}
-                      {!pengurus && a && (
-                        <Badge
-                          tone={
-                            a.status === "hadir" ? "daun" : a.status === "izin" ? "padi" : "bata"
-                          }
-                        >
-                          {ATTENDANCE_LABEL[a.status]}
-                        </Badge>
+                        <span className="stabilo text-xs font-bold">Menunggu kirim</span>
                       )}
                     </div>
-                    {pengurus && (
-                      <div className="mt-2">
-                        <AttendanceControl
-                          name={m.fullName}
-                          value={a?.status}
-                          disabled={readOnly}
-                          onSet={(s) => mark(m.id, s)}
-                        />
-                      </div>
+                    {pengurus ? (
+                      <AttendanceControl
+                        name={m.fullName}
+                        value={a?.status}
+                        disabled={readOnly || bulkBusy}
+                        onSet={(s) => mark(m.id, s)}
+                      />
+                    ) : (
+                      <span
+                        className={`shrink-0 text-sm font-bold ${a ? STATUS_TEXT[a.status] : "text-tinta-pudar"}`}
+                      >
+                        {a ? ATTENDANCE_LABEL[a.status] : "Belum"}
+                      </span>
                     )}
                   </li>
                 );
@@ -282,28 +345,20 @@ function Detail() {
           )}
         </section>
 
-        <section
-          aria-label="Keuangan kegiatan"
-          className="rounded-3xl bg-white p-4 ring-1 ring-garis"
-        >
-          <h2 className="mb-3 font-semibold">Keuangan kegiatan</h2>
-          <dl className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-daun-50 p-3">
-              <dt className="text-sm text-tinta-lembut">Pemasukan</dt>
-              <dd className="font-bold text-daun-700 tabular-nums">{formatRupiah(money.income)}</dd>
-            </div>
-            <div className="rounded-2xl bg-bata-50 p-3">
-              <dt className="text-sm text-tinta-lembut">Pengeluaran</dt>
-              <dd className="font-bold text-bata-700 tabular-nums">
-                {formatRupiah(money.expense)}
-              </dd>
-            </div>
+        <section aria-labelledby="uang-kegiatan">
+          <h2 id="uang-kegiatan" className="mb-2 font-display text-lg font-bold">
+            Uang kegiatan
+          </h2>
+          <dl className="lembar grid grid-cols-[1fr_auto] gap-y-2 p-4">
+            <dt className="text-tinta-pudar">Masuk</dt>
+            <dd className="text-right font-bold text-pulpen-600">+ {formatRupiah(money.income)}</dd>
+            <dt className="text-tinta-pudar">Keluar</dt>
+            <dd className="text-right font-bold text-merah-600">− {formatRupiah(money.expense)}</dd>
+            <dt className="font-bold">Selisih ({related.length} transaksi)</dt>
+            <dd className="text-right font-bold">
+              <span className="jumlah">{formatRupiah(money.net)}</span>
+            </dd>
           </dl>
-          <p className="mt-3 text-sm text-tinta-lembut">
-            Selisih:{" "}
-            <span className="font-semibold text-tinta tabular-nums">{formatRupiah(money.net)}</span>{" "}
-            dari {related.length} transaksi.
-          </p>
           {can("transaction") && (
             <ButtonLink
               href={`/kas/baru?kegiatan=${activity.id}&tipe=pengeluaran`}
@@ -311,7 +366,7 @@ function Detail() {
               block
               className="mt-3"
             >
-              Catat transaksi kegiatan ini
+              Catat uang kegiatan ini
             </ButtonLink>
           )}
         </section>
@@ -331,7 +386,13 @@ function Detail() {
 
 export default function DetailKegiatanPage() {
   return (
-    <Suspense fallback={<p className="py-10 text-center text-tinta-lembut">Membuka kegiatan…</p>}>
+    <Suspense
+      fallback={
+        <div className="pt-6">
+          <ListSkeleton rows={6} />
+        </div>
+      }
+    >
       <Detail />
     </Suspense>
   );

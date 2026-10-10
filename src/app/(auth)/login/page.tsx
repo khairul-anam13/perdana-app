@@ -2,39 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { BrandMark } from "@/components/app/brand";
+import { Kawung } from "@/components/app/brand";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
-import { IconEye, IconEyeOff, IconOffline } from "@/components/ui/icons";
+import { IconEye, IconEyeOff, IconOffline, IconWarning } from "@/components/ui/icons";
 import { login } from "@/lib/auth/client";
 import { isExpired } from "@/lib/auth/session";
 import { useSession } from "@/lib/auth/use-session";
 import { syncNow } from "@/lib/sync/engine";
 import { useOnline } from "@/lib/sync/use-sync-info";
-
-/** Lipatan sawah berundak sebagai latar kepala halaman masuk. */
-function Terraces() {
-  return (
-    <svg
-      viewBox="0 0 400 120"
-      preserveAspectRatio="none"
-      className="absolute inset-x-0 bottom-0 h-24 w-full"
-      aria-hidden="true"
-    >
-      <path d="M0 40q50-18 100 0t100 0 100 0 100 0v80H0Z" fill="#22663a" />
-      <path d="M0 62q50-18 100 0t100 0 100 0 100 0v58H0Z" fill="#1a522f" />
-      <path
-        d="M0 62q50-18 100 0t100 0 100 0 100 0"
-        fill="none"
-        stroke="#f4cd55"
-        strokeWidth="2"
-        opacity=".8"
-      />
-      <path d="M0 86q50-18 100 0t100 0 100 0 100 0v34H0Z" fill="#143f25" />
-      <path d="M0 108q50-14 100 0t100 0 100 0 100 0v12H0Z" fill="#0e2c1a" />
-    </svg>
-  );
-}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -72,29 +48,31 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col">
-      <div className="relative overflow-hidden bg-daun-800 px-6 pt-[max(3rem,env(safe-area-inset-top))] pb-28 text-white">
-        <BrandMark className="size-14" />
-        <h1 className="mt-5 text-3xl font-bold tracking-tight">Perdana</h1>
-        <p className="mt-1.5 max-w-64 text-daun-100">
-          Kas, anggota, dan kegiatan Karang Taruna. Tetap jalan tanpa sinyal.
-        </p>
-        <Terraces />
+      {/* Sampul buku folio: punggung kain merah, motif kawung, label putih bergaris. */}
+      <div className="relative overflow-hidden border-l-[14px] border-merah-600 bg-sampul px-6 pt-[max(2.5rem,env(safe-area-inset-top))] pb-10">
+        <Kawung />
+        <div className="relative rounded-sm bg-lembar px-5 pt-4 pb-5 shadow-angkat">
+          <h1 className="border-b-2 border-pulpen-600 pb-1 font-display text-4xl font-black text-tinta">
+            Perdana
+          </h1>
+          <p className="mt-2 border-b border-garis pb-1.5 text-tinta">
+            Buku kas, anggota, dan kegiatan
+          </p>
+          <p className="mt-1.5 border-b border-garis pb-1.5 text-tinta-pudar">Karang Taruna</p>
+        </div>
       </div>
 
-      <form
-        onSubmit={onSubmit}
-        className="-mt-6 flex flex-1 flex-col gap-4 rounded-t-3xl bg-kapur px-6 pt-7 pb-10"
-        noValidate
-      >
-        <h2 className="text-xl font-bold tracking-tight">Masuk</h2>
+      <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-4 px-6 pt-6 pb-10" noValidate>
+        <h2 className="font-display text-xl font-bold">Masuk</h2>
 
         {!online && (
           <p
             role="alert"
-            className="flex items-start gap-2 rounded-xl bg-padi-100 p-3 text-sm text-padi-800"
+            className="flex items-start gap-2 rounded-md border-l-[6px] border-stabilo-300 bg-stabilo-100 p-3 text-sm"
           >
-            <IconOffline className="mt-0.5 size-5 shrink-0" />
-            Masuk pertama kali butuh internet. Setelah itu aplikasi bisa dipakai tanpa internet.
+            <IconOffline className="mt-0.5 size-5" />
+            HP sedang offline. Masuk pertama kali butuh internet; setelah itu aplikasi bisa dipakai
+            tanpa internet.
           </p>
         )}
 
@@ -125,14 +103,15 @@ export default function LoginPage() {
                 pattern="[0-9]*"
                 maxLength={6}
                 autoComplete="current-password"
-                className="pr-14 tracking-[0.3em]"
+                className="pr-14! text-xl! font-bold tracking-[0.3em]"
                 disabled={busy}
               />
               <button
                 type="button"
                 onClick={() => setShowPin((v) => !v)}
                 aria-label={showPin ? "Sembunyikan PIN" : "Tampilkan PIN"}
-                className="absolute inset-y-0 right-0 grid w-12 place-items-center text-tinta-lembut"
+                aria-pressed={showPin}
+                className="absolute inset-y-0 right-0 grid w-12 place-items-center rounded-md text-tinta-pudar -outline-offset-2 hover:text-tinta"
               >
                 {showPin ? <IconEyeOff className="size-5" /> : <IconEye className="size-5" />}
               </button>
@@ -141,16 +120,20 @@ export default function LoginPage() {
         </Field>
 
         {error && (
-          <p role="alert" className="rounded-xl bg-bata-50 p-3 text-sm font-medium text-bata-700">
+          <p
+            role="alert"
+            className="flex items-start gap-2 rounded-md border-l-[6px] border-merah-600 bg-merah-50 p-3 text-sm font-bold text-merah-700"
+          >
+            <IconWarning className="mt-0.5 size-4" />
             {error}
           </p>
         )}
 
-        <Button type="submit" size="lg" block disabled={busy}>
+        <Button type="submit" size="lg" block loading={busy}>
           {step === "masuk" ? "Memeriksa…" : step === "unduh" ? "Mengunduh data…" : "Masuk"}
         </Button>
 
-        <p className="text-center text-sm text-tinta-lembut">
+        <p className="text-center text-sm text-tinta-pudar">
           Lupa PIN? Minta Ketua mengatur ulang PIN Anda.
         </p>
       </form>

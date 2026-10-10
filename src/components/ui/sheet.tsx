@@ -34,19 +34,19 @@ export function Sheet({
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
       aria-label={title}
-      className="fixed inset-x-0 top-auto bottom-0 m-0 max-h-[92dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-3xl bg-kapur p-0 text-tinta open:animate-sheet-in md:inset-0 md:m-auto md:h-fit md:max-w-lg md:rounded-3xl"
+      className="fixed inset-x-0 top-auto bottom-0 m-0 max-h-[92dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-xl border-t-4 border-pulpen-600 bg-lembar p-0 text-tinta shadow-angkat open:animate-sheet-in md:inset-0 md:m-auto md:h-fit md:max-w-lg md:rounded-xl"
     >
       {open && (
-        <div className="px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-xl font-bold tracking-tight">{title}</h2>
+        <div className="px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="font-display text-xl leading-tight font-bold">{title}</h2>
             <button
               type="button"
               onClick={onClose}
               aria-label="Tutup"
-              className="-mr-2 grid size-11 place-items-center rounded-full text-tinta-lembut hover:bg-daun-100"
+              className="-mr-2 grid size-12 shrink-0 place-items-center rounded-md text-tinta-pudar hover:bg-pulpen-50 active:bg-pulpen-100"
             >
-              <IconX />
+              <IconX className="size-5" />
             </button>
           </div>
           {children}

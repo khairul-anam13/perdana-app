@@ -4,13 +4,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Chips } from "@/components/ui/chips";
+import { ListSkeleton } from "@/components/ui/empty-state";
 import { Field, Input, Select } from "@/components/ui/field";
 import { IconCamera, IconX } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/page-header";
 import { Segmented } from "@/components/ui/segmented";
 import { useToast } from "@/components/ui/toast";
 import { usePerm } from "@/lib/auth/use-perm";
-import { formatAngka, parseRupiah } from "@/lib/format/rupiah";
+import { formatAngka, formatRupiah, parseRupiah } from "@/lib/format/rupiah";
 import { todayISO } from "@/lib/format/tanggal";
 import { compressImage } from "@/lib/image/compress";
 import { useLookups } from "@/features/use-lookups";
@@ -19,6 +20,7 @@ import {
   CATEGORY_IURAN,
   EXPENSE_CATEGORIES,
   INCOME_CATEGORIES,
+  MAX_AMOUNT,
   TX_TYPES,
   transactionFormSchema,
   type TxType,
@@ -53,6 +55,8 @@ function Form() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Kembali ke layar asal (mis. rekap iuran), bukan selalu ke daftar kas.
+  const backTo = params.get("dari") === "iuran" ? "/kas/iuran" : "/kas";
 
   const categories = type === "pemasukan" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
   const isIuran = type === "pemasukan" && category === CATEGORY_IURAN;
@@ -62,9 +66,11 @@ function Form() {
 
   if (user && !can("transaction")) {
     return (
-      <div className="rounded-2xl bg-white p-5 ring-1 ring-garis">
-        <p className="font-semibold">Hanya Bendahara dan Ketua yang bisa mencatat kas.</p>
-        <p className="mt-1 text-tinta-lembut">Anda tetap bisa melihat semua catatan kas.</p>
+      <div className="lembar p-5">
+        <p className="font-display text-lg font-bold">
+          Hanya Bendahara dan Ketua yang bisa mencatat kas.
+        </p>
+        <p className="mt-1 text-tinta-pudar">Anda tetap bisa melihat semua catatan kas.</p>
         <ButtonLink href="/kas" className="mt-4">
           Kembali ke Kas
         </ButtonLink>
@@ -85,7 +91,7 @@ function Form() {
     }
   }
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!user) return;
     const parsed = transactionFormSchema.safeParse({
@@ -103,13 +109,23 @@ function Form() {
     if (!category) next.category = "Pilih kategori";
     if (isIuran && !memberId) next.memberId = "Pilih anggota yang membayar iuran";
     setErrors(next);
-    if (Object.keys(next).length || !parsed.success) return;
+    if (Object.keys(next).length || !parsed.success) {
+      // Bawa pengguna ke isian pertama yang salah; tombol simpan ada jauh di bawah.
+      const form = e.currentTarget;
+      requestAnimationFrame(() =>
+        form.querySelector<HTMLElement>('[aria-invalid="true"]')?.scrollIntoView({
+          block: "center",
+          behavior: "smooth",
+        }),
+      );
+      return;
+    }
 
     setSaving(true);
     try {
       const changeId = await saveTransaction(parsed.data, user, receipt);
       toast.saved([changeId]);
-      router.replace("/kas");
+      router.replace(backTo);
     } catch {
       toast.show("Gagal menyimpan di HP. Coba lagi.", "error");
       setSaving(false);
@@ -120,6 +136,7 @@ function Form() {
     <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
       <Segmented<TxType>
         label="Jenis"
+        hideLabel
         value={type}
         onChange={(v) => {
           setType(v);
@@ -128,32 +145,41 @@ function Form() {
         }}
         options={TYPE_OPTIONS}
         tones={{
-          pemasukan: "bg-daun-700 text-white shadow-sm",
-          pengeluaran: "bg-bata-600 text-white shadow-sm",
+          pemasukan: "bg-pulpen-600 text-white",
+          pengeluaran: "bg-merah-600 text-white",
         }}
       />
 
       <div>
-        <Field label="Nominal (Rp)" error={errors.amount}>
+        <Field label="Nominal" error={errors.amount}>
           {(p) => (
-            <Input
-              {...p}
-              value={amount ? formatAngka(amount) : ""}
-              onChange={(e) => setAmount(Math.min(parseRupiah(e.target.value), 2_000_000_000))}
-              inputMode="numeric"
-              placeholder="0"
-              autoFocus
-              className="h-14 text-2xl font-bold tabular-nums"
-            />
+            <div className="relative">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0 left-3.5 grid place-items-center font-display text-xl font-bold text-tinta-pudar"
+              >
+                Rp
+              </span>
+              <Input
+                {...p}
+                value={amount ? formatAngka(amount) : ""}
+                onChange={(e) => setAmount(Math.min(parseRupiah(e.target.value), MAX_AMOUNT))}
+                inputMode="numeric"
+                placeholder="0"
+                autoFocus
+                className="h-16! pl-13! text-3xl! font-bold"
+              />
+            </div>
           )}
         </Field>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div className="mt-2 grid grid-cols-4 gap-2">
           {QUICK_AMOUNTS.map((q) => (
             <button
               key={q}
               type="button"
               onClick={() => setAmount(q)}
-              className="min-h-10 rounded-full bg-garis/70 px-3.5 text-sm font-semibold hover:bg-garis"
+              aria-label={`Isi ${formatRupiah(q)}`}
+              className="min-h-11 rounded-md border border-garis-kuat bg-lembar text-sm font-bold hover:bg-pulpen-50 active:bg-pulpen-100"
             >
               {formatAngka(q)}
             </button>
@@ -224,7 +250,7 @@ function Form() {
       )}
 
       <div>
-        <p className="mb-1.5 text-sm font-medium">Foto nota (boleh kosong)</p>
+        <p className="mb-1.5 text-sm font-bold">Foto nota (boleh kosong)</p>
         <input
           ref={fileRef}
           type="file"
@@ -235,45 +261,60 @@ function Form() {
           onChange={(e) => onPickFile(e.target.files?.[0])}
         />
         {receipt && receiptUrl ? (
-          <div className="flex items-center gap-3 rounded-2xl bg-white p-2 ring-1 ring-garis">
+          <div className="lembar flex items-center gap-3 p-2">
             {/* eslint-disable-next-line @next/next/no-img-element -- pratinjau blob lokal */}
             <img
               src={receiptUrl}
               alt="Pratinjau nota"
-              className="size-20 rounded-xl object-cover"
+              className="size-20 rounded-sm object-cover"
             />
             <div className="min-w-0 flex-1 text-sm">
-              <p className="font-semibold">Nota siap</p>
-              <p className="text-tinta-lembut">
-                {Math.round(receipt.size / 1024)} KB · diunggah saat online
+              <p className="font-bold">Nota siap</p>
+              <p className="text-tinta-pudar">
+                {Math.round(receipt.size / 1024)} KB, diunggah saat online
               </p>
             </div>
             <button
               type="button"
               onClick={() => setReceipt(null)}
               aria-label="Hapus foto nota"
-              className="grid size-11 place-items-center rounded-full text-tinta-lembut hover:bg-garis"
+              className="grid size-12 place-items-center rounded-md text-tinta-pudar hover:bg-pulpen-50"
             >
-              <IconX />
+              <IconX className="size-5" />
             </button>
           </div>
         ) : (
           <label
             htmlFor="nota"
-            className="flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-garis-kuat bg-white/60 font-semibold text-tinta-lembut hover:bg-white has-[:focus-visible]:outline-3"
+            className="flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed border-garis-kuat bg-lembar font-bold hover:bg-pulpen-50 has-[:focus-visible]:outline-3"
           >
-            <IconCamera className="size-6" />
+            {receiptBusy ? (
+              <span className="pemutar" aria-hidden />
+            ) : (
+              <IconCamera className="size-5 text-pulpen-600" />
+            )}
             {receiptBusy ? "Memproses foto…" : "Ambil foto nota"}
           </label>
         )}
       </div>
 
-      <div className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] -mx-4 flex gap-3 bg-gradient-to-t from-kapur via-kapur to-transparent px-4 pt-4 pb-2 md:static md:mx-0 md:bg-none md:px-0">
+      <div className="sticky bottom-[calc(3.75rem+env(safe-area-inset-bottom))] -mx-4 flex gap-2 border-t border-garis bg-kertas/95 px-4 py-3 md:static md:mx-0 md:border-0 md:bg-transparent md:px-0">
         <Button variant="secondary" size="lg" onClick={() => router.back()} disabled={saving}>
           Batal
         </Button>
-        <Button type="submit" size="lg" className="flex-1" disabled={saving || receiptBusy}>
-          {saving ? "Menyimpan…" : "Simpan"}
+        <Button
+          type="submit"
+          size="lg"
+          variant={type === "pengeluaran" ? "danger" : "primary"}
+          className="min-w-0 flex-1 px-3 text-base"
+          loading={saving}
+          disabled={receiptBusy}
+        >
+          {saving
+            ? "Menyimpan…"
+            : amount
+              ? `Simpan ${type === "pemasukan" ? "+" : "−"} ${formatRupiah(amount)}`
+              : "Simpan"}
         </Button>
       </div>
     </form>
@@ -284,12 +325,11 @@ export default function CatatKasPage() {
   return (
     <>
       <PageHeader
-        module="kas"
         title="Catat transaksi"
-        subtitle="Cukup beberapa ketukan. Tersimpan di HP dulu."
+        subtitle="Tersimpan di HP dulu, terkirim saat ada internet."
         back={{ href: "/kas", label: "Kas" }}
       />
-      <Suspense fallback={<p className="py-10 text-center text-tinta-lembut">Membuka formulir…</p>}>
+      <Suspense fallback={<ListSkeleton rows={5} />}>
         <Form />
       </Suspense>
     </>

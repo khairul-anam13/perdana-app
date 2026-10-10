@@ -3,35 +3,40 @@
 import { formatBulan, monthKey, shiftMonth, todayISO } from "@/lib/format/tanggal";
 import { IconChevronLeft, IconChevronRight } from "./icons";
 
-/** Pemilih bulan dengan tombol sebelumnya/berikutnya. Nilai: "2026-10". */
+const arrow =
+  "grid size-12 place-items-center rounded-md text-tinta hover:bg-pulpen-50 active:bg-pulpen-100";
+
+/** Pemilih bulan: seperti membalik halaman buku. Nilai: "2026-10". */
 export function MonthNav({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const isNow = value === monthKey(todayISO());
   return (
-    <div className="flex items-center justify-between gap-2 rounded-2xl bg-white p-1.5 ring-1 ring-garis">
+    <div className="flex items-center justify-between gap-1 border-y border-garis">
       <button
         type="button"
         onClick={() => onChange(shiftMonth(value, -1))}
         aria-label="Bulan sebelumnya"
-        className="grid size-11 place-items-center rounded-xl text-tinta hover:bg-daun-50"
+        className={arrow}
       >
-        <IconChevronLeft />
+        <IconChevronLeft className="size-5" />
       </button>
       <button
         type="button"
         onClick={() => onChange(monthKey(todayISO()))}
         disabled={isNow}
-        aria-label={isNow ? undefined : "Kembali ke bulan ini"}
-        className="min-h-11 flex-1 rounded-xl px-2 text-center font-semibold"
+        className="min-h-12 flex-1 rounded-md px-2 text-center"
       >
-        {formatBulan(value)}
+        <span className="block font-display text-lg leading-tight font-bold">
+          {formatBulan(value)}
+        </span>
+        {!isNow && <span className="block text-xs text-pulpen-600">Kembali ke bulan ini</span>}
       </button>
       <button
         type="button"
         onClick={() => onChange(shiftMonth(value, 1))}
         aria-label="Bulan berikutnya"
-        className="grid size-11 place-items-center rounded-xl text-tinta hover:bg-daun-50"
+        className={arrow}
       >
-        <IconChevronRight />
+        <IconChevronRight className="size-5" />
       </button>
     </div>
   );

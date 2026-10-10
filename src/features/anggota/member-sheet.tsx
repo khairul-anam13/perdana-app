@@ -188,9 +188,9 @@ function MemberForm({
 
       {member &&
         (confirmDelete ? (
-          <div className="rounded-2xl bg-bata-50 p-4 ring-1 ring-bata-100">
-            <p className="font-semibold text-bata-700">Hapus {member.fullName}?</p>
-            <p className="mt-1 text-sm text-tinta-lembut">
+          <div className="rounded-lg bg-merah-50 p-4 ring-1 ring-merah-100">
+            <p className="font-bold text-merah-700">Hapus {member.fullName}?</p>
+            <p className="mt-1 text-sm text-tinta-pudar">
               Anggota hilang dari daftar. Catatan kas dan absensi lama tetap ada.
             </p>
             <div className="mt-3 flex gap-2">
@@ -203,7 +203,7 @@ function MemberForm({
             </div>
           </div>
         ) : (
-          <Button variant="ghost" onClick={() => setConfirmDelete(true)} className="text-bata-700">
+          <Button variant="ghost" onClick={() => setConfirmDelete(true)} className="text-merah-700">
             Hapus anggota
           </Button>
         ))}
@@ -215,19 +215,19 @@ function MemberForm({
 function MemberView({ member }: { member: Member }) {
   return (
     <dl className="grid grid-cols-[7rem_1fr] gap-x-3 gap-y-3">
-      <dt className="text-tinta-lembut">Nama</dt>
+      <dt className="text-tinta-pudar">Nama</dt>
       <dd className="font-medium">{member.fullName}</dd>
-      <dt className="text-tinta-lembut">Jabatan</dt>
+      <dt className="text-tinta-pudar">Jabatan</dt>
       <dd className="font-medium">{member.position}</dd>
-      <dt className="text-tinta-lembut">Dusun</dt>
+      <dt className="text-tinta-pudar">Dusun</dt>
       <dd className="font-medium">{member.dusun ?? "-"}</dd>
-      <dt className="text-tinta-lembut">Status</dt>
+      <dt className="text-tinta-pudar">Status</dt>
       <dd>
-        <Badge tone={member.status === "aktif" ? "daun" : "netral"}>
+        <Badge tone={member.status === "aktif" ? "stempel" : "netral"}>
           {STATUS_LABEL[member.status]}
         </Badge>
       </dd>
-      <dt className="text-tinta-lembut">Bergabung</dt>
+      <dt className="text-tinta-pudar">Bergabung</dt>
       <dd className="font-medium">{formatTanggal(member.joinedAt)}</dd>
     </dl>
   );
@@ -259,7 +259,7 @@ export function MemberSheet({
         <>
           {flag && state.mode === "edit" && (
             <p
-              className={`mb-4 rounded-xl p-3 text-sm font-medium ${flag === "lewat" ? "bg-bata-50 text-bata-700" : "bg-padi-100 text-padi-800"}`}
+              className={`mb-4 rounded-md p-3 text-sm font-medium ${flag === "lewat" ? "bg-merah-50 text-merah-700" : "bg-stabilo-100 text-stabilo-800"}`}
             >
               {flag === "lewat"
                 ? "Sudah melewati batas usia Karang Taruna (45 tahun). Pertimbangkan mengubah status menjadi Alumni."

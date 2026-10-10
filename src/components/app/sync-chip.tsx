@@ -12,17 +12,17 @@ export function useSyncSummary() {
   let tone: "ok" | "wait" | "off" | "err" = "ok";
   let text = s.lastSyncAt ? `Tersinkron ${timeAgo(s.lastSyncAt)}` : "Belum pernah sinkron";
   if (s.syncing) {
-    tone = "wait";
+    tone = waiting ? "wait" : "ok"; // sinkron rutin tanpa antrean bukan hal yang perlu perhatian
     text = "Menyinkronkan…";
   } else if (!s.online) {
     tone = "off";
-    text = waiting ? `Offline · ${waiting} menunggu` : "Offline";
+    text = waiting ? `Offline, ${waiting} menunggu` : "Offline";
   } else if (s.rejected) {
     tone = "err";
     text = `${s.rejected} ditolak server`;
   } else if (s.lastError && waiting) {
     tone = "err";
-    text = `Gagal kirim · ${waiting} menunggu`;
+    text = `Gagal kirim, ${waiting} menunggu`;
   } else if (waiting) {
     tone = "wait";
     text = `${waiting} menunggu dikirim`;
@@ -31,16 +31,17 @@ export function useSyncSummary() {
 }
 
 const toneClass = {
-  ok: "bg-daun-100 text-daun-800",
-  wait: "bg-padi-100 text-padi-800",
-  off: "bg-garis text-tinta",
-  err: "bg-bata-100 text-bata-700",
+  ok: "bg-stempel-100 text-stempel-700",
+  wait: "bg-stabilo-300 text-tinta",
+  off: "bg-lembar text-tinta ring-1 ring-garis-kuat",
+  err: "bg-merah-100 text-merah-700",
 } as const;
 
 export function SyncChip() {
   const { tone, text, syncing } = useSyncSummary();
-  const Icon =
-    tone === "off"
+  const Icon = syncing
+    ? IconSync
+    : tone === "off"
       ? IconOffline
       : tone === "err"
         ? IconWarning
@@ -51,7 +52,7 @@ export function SyncChip() {
     <Link
       href="/akun#sinkron"
       aria-label={`Status sinkronisasi: ${text}. Buka detail.`}
-      className={`inline-flex min-h-10 max-w-[60vw] items-center gap-1.5 rounded-full px-3 text-sm font-semibold ${toneClass[tone]}`}
+      className={`inline-flex min-h-11 max-w-[60vw] items-center gap-1.5 rounded-md px-3 text-sm font-bold ${toneClass[tone]}`}
     >
       <Icon className={`size-4 shrink-0 ${syncing ? "animate-spin-slow" : ""}`} />
       <span className="truncate">{text}</span>
