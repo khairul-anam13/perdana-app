@@ -6,7 +6,9 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 function create(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL belum diatur");
-  return new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+  // Serverless (Vercel): tiap instance cukup beberapa koneksi; pooler Supabase yang membagi ke Postgres.
+  const max = process.env.VERCEL ? 3 : undefined;
+  return new PrismaClient({ adapter: new PrismaPg({ connectionString, max }) });
 }
 
 export const prisma = globalForPrisma.prisma ?? create();

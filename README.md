@@ -121,10 +121,32 @@ Aturan yang dijaga: komponen UI hanya memanggil **repository lokal** (tidak lang
 **dan** antrean outbox dalam satu transaksi; hak akses ditegakkan di **server** (UI hanya menyembunyikan tombol).
 Menambah modul baru = folder baru di `features/`, satu entitas di `lib/sync/protocol.ts`, satu handler di `server/sync/push.ts`.
 
-## Produksi (ringkas)
+## Produksi di Vercel + Supabase
 
-- Sediakan PostgreSQL, set `DATABASE_URL` dan `AUTH_SECRET`, jalankan `pnpm db:deploy`, `pnpm build`, `pnpm start`.
-- Wajib **HTTPS** (syarat service worker dan cookie sesi `secure`).
+Alamat: `https://perdanaku.vercel.app`. Database: Supabase (Singapura); fungsi Vercel dipasang di `sin1` (`vercel.json`)
+supaya jaraknya dekat ke database.
+
+1. **Vercel → Add New → Project**, impor repo ini. Framework terdeteksi Next.js; build memakai `pnpm build`
+   (sudah `prisma generate` + `next build --webpack`), tidak perlu diubah.
+2. **Settings → Environment Variables** (centang Production dan Preview; `DATABASE_URL` dibutuhkan saat build):
+
+   | Nama           | Nilai                                                                                                                                       |
+   | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+   | `DATABASE_URL` | `postgresql://postgres.<project-ref>:<PASSWORD>@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&uselibpqcompat=true` |
+   | `AUTH_SECRET`  | acak 32 byte, **berbeda** dari lokal (perintah di bagian Variabel lingkungan)                                                               |
+
+   Port **6543** (transaction pooler) untuk Vercel; port 5432 hanya untuk migrasi dari laptop.
+
+3. Deploy. Setelah itu buka `/login`, masuk dengan akun Sup Admin.
+4. Migrasi skema baru: dari laptop, `.env` berisi URL port 5432, jalankan `pnpm db:deploy` **sebelum** deploy
+   yang memakai skema itu.
+
+Catatan:
+
+- Preview deployment (URL `*-git-<cabang>-*.vercel.app`) memakai database yang sama bila variabelnya dicentang untuk
+  Preview. Pisahkan dengan proyek Supabase kedua bila ingin data uji terpisah.
+- Sesi (cookie 30 hari) ditandatangani `AUTH_SECRET`; mengganti nilainya mengeluarkan semua orang.
+- Wajib HTTPS (Vercel sudah); itu syarat service worker dan cookie sesi `secure`.
 
 Keputusan desain dan hal yang belum dikerjakan: lihat [docs/keputusan.md](docs/keputusan.md).
 
