@@ -62,12 +62,16 @@ export function TransactionSheet({
   activityTitle?: string;
   onClose: () => void;
 }) {
-  const { user, can } = usePerm();
+  const { user, can, seksiKategori } = usePerm();
   const toast = useToast();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const allowReverse = !!tx && can("transaction") && canReverse(tx, reversed);
+  const allowReverse =
+    !!tx &&
+    can("transaction") &&
+    canReverse(tx, reversed) &&
+    (!seksiKategori || tx.category === seksiKategori);
 
   async function doReverse() {
     if (!tx || !user) return;

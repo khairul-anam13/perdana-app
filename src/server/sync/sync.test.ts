@@ -293,6 +293,11 @@ describe("otorisasi peran di server", () => {
       ["bendahara", "transaction", true],
       ["ketua", "transaction", true],
       ["sekretaris", "transaction", false],
+      ["admin", "transaction", false],
+      ["admin", "member", false],
+      ["admin", "activity", false],
+      ["kelistrikan", "member", false],
+      ["denda", "activity", false],
       ["anggota", "transaction", false],
       ["sekretaris", "member", true],
       ["ketua", "member", true],
@@ -306,6 +311,59 @@ describe("otorisasi peran di server", () => {
       const payload = entity === "transaction" ? tx() : entity === "member" ? member() : activity();
       const r = await applyChange(users[role], change(entity, "create", payload));
       expect(r.status, `${role} -> ${entity}`).toBe(allowed ? "ok" : "ditolak");
+    }
+  });
+
+  it("Seksi hanya mencatat pemasukan di kategorinya sendiri", async () => {
+    const ok = (r: { status: string }) => r.status;
+    const cases: [Role, Partial<Transaction>, string][] = [
+      ["kelistrikan", { category: "Listrik", type: "pemasukan" }, "ok"],
+      ["kelistrikan", { category: "Denda", type: "pemasukan" }, "ditolak"],
+      ["kelistrikan", { category: "Listrik", type: "pengeluaran" }, "ditolak"],
+      ["denda", { category: "Denda", type: "pemasukan" }, "ok"],
+      ["denda", { category: "Iuran", type: "pemasukan" }, "ditolak"],
+    ];
+    for (const [role, o, want] of cases) {
+      const r = await applyChange(users[role], change("transaction", "create", tx(o)));
+      expect(ok(r), `${role} ${JSON.stringify(o)}`).toBe(want);
+    }
+  });
+
+  it("Seksi hanya mengoreksi transaksi di kategorinya", async () => {
+    const listrik = tx({ category: "Listrik", type: "pemasukan", amount: 7_000 });
+    const donasi = tx({ category: "Donasi", type: "pemasukan", amount: 9_000 });
+    await applyChange(users.bendahara, change("transaction", "create", listrik));
+    await applyChange(users.bendahara, change("transaction", "create", donasi));
+    const reverse = (o: Transaction): Transaction =>
+      tx({
+        category: o.category,
+        type: "pengeluaran",
+        amount: o.amount,
+        reversesTransactionId: o.id,
+      });
+    const bad = await applyChange(
+      users.kelistrikan,
+      change("transaction", "create", reverse(donasi)),
+    );
+    expect(bad.status).toBe("ditolak");
+    const good = await applyChange(
+      users.kelistrikan,
+      change("transaction", "create", reverse(listrik)),
+    );
+    expect(good.status).toBe("ok");
+  });
+
+  it("selain Ketua dan Sekretaris hanya boleh mengisi absensi dirinya sendiri", async () => {
+    const a = activity();
+    await applyChange(users.sekretaris, change("activity", "create", a));
+    const other = member();
+    await applyChange(users.sekretaris, change("member", "create", other));
+    for (const role of ["bendahara", "kelistrikan", "denda", "admin"] as const) {
+      const r = await applyChange(
+        users[role],
+        change("attendance", "create", attendance(a.id, other.id)),
+      );
+      expect(r.status, role).toBe("ditolak");
     }
   });
 

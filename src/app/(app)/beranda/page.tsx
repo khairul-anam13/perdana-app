@@ -35,7 +35,7 @@ function Baris({ href, label, children }: { href: string; label: string; childre
 }
 
 export default function BerandaPage() {
-  const { user, can } = usePerm();
+  const { user, can, seksiKategori } = usePerm();
   const { txs } = useLedger();
   const { members, activities, loading } = useLookups();
   const lastSyncAt = useLiveQuery(async () => (await getMeta<string>("lastSyncAt")) ?? null, []);
@@ -86,16 +86,21 @@ export default function BerandaPage() {
           periodLabel={formatBulan(month)}
         />
 
-        {can("transaction") && (
-          <div className="grid grid-cols-2 gap-2">
-            <ButtonLink href="/kas/baru?tipe=pemasukan">
-              <IconArrowDown className="size-4" /> Catat masuk
+        {can("transaction") &&
+          (seksiKategori ? (
+            <ButtonLink href="/kas/baru" size="lg">
+              <IconArrowDown className="size-4" /> Catat {seksiKategori.toLowerCase()}
             </ButtonLink>
-            <ButtonLink href="/kas/baru?tipe=pengeluaran" variant="secondary">
-              <IconArrowUp className="size-4 text-merah-600" /> Catat keluar
-            </ButtonLink>
-          </div>
-        )}
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <ButtonLink href="/kas/baru?tipe=pemasukan">
+                <IconArrowDown className="size-4" /> Catat masuk
+              </ButtonLink>
+              <ButtonLink href="/kas/baru?tipe=pengeluaran" variant="secondary">
+                <IconArrowUp className="size-4 text-merah-600" /> Catat keluar
+              </ButtonLink>
+            </div>
+          ))}
 
         <section aria-labelledby="terdekat">
           <h2 id="terdekat" className="mb-2 font-display text-lg font-bold">

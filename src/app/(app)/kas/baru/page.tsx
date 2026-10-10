@@ -40,12 +40,12 @@ function Form() {
   const router = useRouter();
   const params = useSearchParams();
   const toast = useToast();
-  const { user, can } = usePerm();
+  const { user, can, seksiKategori } = usePerm();
   const { members, activities } = useLookups();
 
-  const [type, setType] = useState<TxType>(parseType(params.get("tipe")));
+  const [typeState, setType] = useState<TxType>(parseType(params.get("tipe")));
   const [amount, setAmount] = useState(0);
-  const [category, setCategory] = useState(params.get("kategori") ?? "");
+  const [categoryState, setCategory] = useState(params.get("kategori") ?? "");
   const [memberId, setMemberId] = useState(params.get("anggota") ?? "");
   const [activityId, setActivityId] = useState(params.get("kegiatan") ?? "");
   const [date, setDate] = useState(todayISO());
@@ -58,6 +58,9 @@ function Form() {
   // Kembali ke layar asal (mis. rekap iuran), bukan selalu ke daftar kas.
   const backTo = params.get("dari") === "iuran" ? "/kas/iuran" : "/kas";
 
+  // Seksi hanya mencatat pemasukan di satu kategori: jenis dan kategori dikunci (server juga menolak lainnya).
+  const type: TxType = seksiKategori ? "pemasukan" : typeState;
+  const category = seksiKategori ?? categoryState;
   const categories = type === "pemasukan" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
   const isIuran = type === "pemasukan" && category === CATEGORY_IURAN;
   const activeMembers = useMemo(() => members.filter((m) => m.status === "aktif"), [members]);
@@ -134,21 +137,23 @@ function Form() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
-      <Segmented<TxType>
-        label="Jenis"
-        hideLabel
-        value={type}
-        onChange={(v) => {
-          setType(v);
-          setCategory("");
-          setMemberId("");
-        }}
-        options={TYPE_OPTIONS}
-        tones={{
-          pemasukan: "bg-pulpen-600 text-white",
-          pengeluaran: "bg-merah-600 text-white",
-        }}
-      />
+      {!seksiKategori && (
+        <Segmented<TxType>
+          label="Jenis"
+          hideLabel
+          value={type}
+          onChange={(v) => {
+            setType(v);
+            setCategory("");
+            setMemberId("");
+          }}
+          options={TYPE_OPTIONS}
+          tones={{
+            pemasukan: "bg-pulpen-600 text-white",
+            pengeluaran: "bg-merah-600 text-white",
+          }}
+        />
+      )}
 
       <div>
         <Field label="Nominal" error={errors.amount}>

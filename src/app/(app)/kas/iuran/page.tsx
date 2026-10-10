@@ -27,7 +27,7 @@ type Filter = "semua" | "belum";
 export default function IuranPage() {
   const { txs } = useLedger();
   const { members, loading } = useLookups();
-  const { user, can } = usePerm();
+  const { user, can, seksiKategori } = usePerm();
   const toast = useToast();
   const [month, setMonth] = useState(() => monthKey(todayISO()));
   const [filter, setFilter] = useState<Filter>("semua");
@@ -64,7 +64,8 @@ export default function IuranPage() {
   const selected = active.filter((m) => ticks.has(m.id) && !isPaid(m.id));
 
   const isThisMonth = month === monthKey(todayISO());
-  const canWrite = can("transaction");
+  // Seksi tidak mencatat iuran (kategori lain): alur centang hanya untuk Ketua dan Bendahara.
+  const canWrite = can("transaction") && !seksiKategori;
   const canCollect = canWrite && isThisMonth;
 
   function toggle(id: string) {

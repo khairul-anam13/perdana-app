@@ -9,7 +9,13 @@ import { IconPlus } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/page-header";
 import { Sheet } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/toast";
-import { canManageUsers, ROLE_LABEL, ROLES, type Role } from "@/lib/auth/permissions";
+import {
+  canAssignRole,
+  canManageUsers,
+  ROLE_LABEL,
+  ROLES,
+  type Role,
+} from "@/lib/auth/permissions";
 import { usePerm } from "@/lib/auth/use-perm";
 import { useOnline } from "@/lib/sync/use-sync-info";
 import { useLookups } from "@/features/use-lookups";
@@ -78,10 +84,12 @@ export default function PenggunaPage() {
     return (
       <>
         <PageHeader title="Kelola pengguna" back={{ href: "/akun", label: "Akun" }} />
-        <EmptyState title="Hanya Ketua yang bisa mengelola pengguna" />
+        <EmptyState title="Hanya Sup Admin dan Ketua yang bisa mengelola pengguna" />
       </>
     );
 
+  // Ketua tidak bisa menunjuk Sup Admin; server menegakkan hal yang sama.
+  const assignable = ROLES.filter((r) => canAssignRole(user.role, r));
   const free = members.filter(
     (m) => !users?.some((u) => u.memberId === m.id) && m.status === "aktif",
   );
@@ -133,7 +141,7 @@ export default function PenggunaPage() {
                     disabled={self}
                     onChange={(e) => patch(u, { role: e.target.value }, "Peran diubah")}
                   >
-                    {ROLES.map((r) => (
+                    {ROLES.filter((r) => r === u.role || assignable.includes(r)).map((r) => (
                       <option key={r} value={r}>
                         {ROLE_LABEL[r]}
                       </option>
@@ -167,6 +175,7 @@ export default function PenggunaPage() {
         open={addOpen}
         onClose={() => setAddOpen(false)}
         members={free}
+        roles={assignable}
         onDone={() => void load()}
       />
       <PinSheet user={pinFor} onClose={() => setPinFor(null)} />
@@ -178,26 +187,30 @@ function AddUserSheet({
   open,
   onClose,
   members,
+  roles,
   onDone,
 }: {
   open: boolean;
   onClose: () => void;
   members: { id: string; fullName: string }[];
+  roles: readonly Role[];
   onDone: () => void;
 }) {
   return (
     <Sheet open={open} onClose={onClose} title="Tambah akun">
-      {open && <AddUserForm members={members} onClose={onClose} onDone={onDone} />}
+      {open && <AddUserForm members={members} roles={roles} onClose={onClose} onDone={onDone} />}
     </Sheet>
   );
 }
 
 function AddUserForm({
   members,
+  roles,
   onClose,
   onDone,
 }: {
   members: { id: string; fullName: string }[];
+  roles: readonly Role[];
   onClose: () => void;
   onDone: () => void;
 }) {
@@ -260,7 +273,7 @@ function AddUserForm({
       <Field label="Peran">
         {(p) => (
           <Select {...p} value={role} onChange={(e) => setRole(e.target.value as Role)}>
-            {ROLES.map((r) => (
+            {roles.map((r) => (
               <option key={r} value={r}>
                 {ROLE_LABEL[r]}
               </option>

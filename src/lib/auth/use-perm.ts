@@ -1,6 +1,6 @@
 "use client";
 
-import { canWrite, type SyncEntity, type SyncOp } from "./permissions";
+import { canWrite, seksiKategori, type SyncEntity, type SyncOp } from "./permissions";
 import { isExpired } from "./session";
 import { useSession } from "./use-session";
 
@@ -12,6 +12,8 @@ export function usePerm() {
   return {
     user,
     readOnly,
+    /** Kategori tunggal yang boleh dicatat peran Seksi; undefined untuk peran lain. */
+    seksiKategori: user ? seksiKategori(user.role) : undefined,
     can: (entity: SyncEntity, op: SyncOp = "create") =>
       !!user && !readOnly && canWrite(user.role, entity, op),
   };

@@ -127,3 +127,27 @@ Menambah modul baru = folder baru di `features/`, satu entitas di `lib/sync/prot
 - Wajib **HTTPS** (syarat service worker dan cookie sesi `secure`).
 
 Keputusan desain dan hal yang belum dikerjakan: lihat [docs/keputusan.md](docs/keputusan.md).
+
+## Peran dan akun pertama
+
+| Peran          | Bisa                                                                               |
+| -------------- | ---------------------------------------------------------------------------------- |
+| Sup Admin      | Kelola akun (termasuk akun Sup Admin lain). Melihat semua; tidak menulis data kas. |
+| Ketua          | Semua data organisasi, kelola akun (kecuali akun Sup Admin).                       |
+| Sekretaris     | Anggota, kegiatan, absensi semua orang.                                            |
+| Bendahara      | Kas (semua kategori).                                                              |
+| S. Kelistrikan | Kas: hanya pemasukan kategori **Listrik** (dan mengoreksinya).                     |
+| S. Denda       | Kas: hanya pemasukan kategori **Denda** (dan mengoreksinya).                       |
+| Anggota        | Melihat; absen untuk dirinya sendiri.                                              |
+
+Aturan ada di satu tempat: `src/lib/auth/permissions.ts`; server menegakkannya di `src/server/sync/push.ts`
+dan `src/app/api/users`. Peran disimpan sebagai teks, jadi menambah peran tidak butuh migrasi.
+
+Akun Sup Admin pertama (juga membuat organisasi bila database masih kosong; tidak menimpa apa pun):
+
+```bash
+pnpm db:admin supadmin1            # PIN diacak dan dicetak sekali
+ADMIN_PIN=123456 pnpm db:admin x   # atau tentukan PIN sendiri
+```
+
+Akun lain dibuat dari **Akun → Kelola pengguna** oleh Sup Admin atau Ketua.

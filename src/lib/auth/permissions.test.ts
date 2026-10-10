@@ -1,12 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { canWrite, ROLES, type Role, type SyncEntity } from "./permissions";
+import { INCOME_CATEGORIES } from "../../features/kas/schema";
+import {
+  canAssignRole,
+  canManageUsers,
+  canWrite,
+  ROLES,
+  seksiKategori,
+  type Role,
+  type SyncEntity,
+} from "./permissions";
 
 describe("hak tulis per peran", () => {
   const writers = (entity: SyncEntity, op = "create" as const): Role[] =>
     ROLES.filter((r) => canWrite(r, entity, op));
 
-  it("kas hanya Ketua dan Bendahara", () => {
-    expect(writers("transaction")).toEqual(["ketua", "bendahara"]);
+  it("kas: Ketua, Bendahara, dan dua Seksi (Seksi dibatasi satu kategori)", () => {
+    expect(writers("transaction")).toEqual(["ketua", "bendahara", "kelistrikan", "denda"]);
   });
 
   it("kas append-only: tak ada yang boleh mengubah atau menghapus transaksi", () => {
@@ -21,8 +30,35 @@ describe("hak tulis per peran", () => {
     expect(writers("activity")).toEqual(["ketua", "sekretaris"]);
   });
 
-  it("absensi boleh ditulis semua peran (anggota hanya untuk dirinya, dicek di server), tapi tak boleh dihapus", () => {
+  it("absensi boleh ditulis semua peran (selain pengurus hanya untuk dirinya, dicek di server), tapi tak boleh dihapus", () => {
     expect(writers("attendance")).toEqual([...ROLES]);
     expect(canWrite("ketua", "attendance", "delete")).toBe(false);
+  });
+
+  it("Sup Admin tidak menulis data organisasi (kas, anggota, kegiatan)", () => {
+    for (const e of ["transaction", "member", "activity"] as const)
+      expect(canWrite("admin", e)).toBe(false);
+  });
+});
+
+describe("kelola akun", () => {
+  it("hanya Sup Admin dan Ketua", () => {
+    expect(ROLES.filter(canManageUsers)).toEqual(["admin", "ketua"]);
+  });
+
+  it("hanya Sup Admin yang boleh menunjuk atau mengubah Sup Admin", () => {
+    expect(canAssignRole("admin", "admin")).toBe(true);
+    expect(canAssignRole("ketua", "admin")).toBe(false);
+    expect(canAssignRole("ketua", "bendahara")).toBe(true);
+  });
+});
+
+describe("kategori Seksi", () => {
+  it("Kelistrikan dan Denda masing-masing satu kategori, dan kategori itu ada di pilihan pemasukan", () => {
+    expect(seksiKategori("kelistrikan")).toBe("Listrik");
+    expect(seksiKategori("denda")).toBe("Denda");
+    for (const r of ROLES.filter((r) => seksiKategori(r)))
+      expect(INCOME_CATEGORIES as readonly string[]).toContain(seksiKategori(r));
+    expect(seksiKategori("bendahara")).toBeUndefined();
   });
 });

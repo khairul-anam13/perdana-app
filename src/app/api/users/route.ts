@@ -1,10 +1,17 @@
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { ROLES } from "@/lib/auth/permissions";
+import { canAssignRole, canManageUsers, ROLES } from "@/lib/auth/permissions";
 import { newId } from "@/lib/id";
 import { requireUser } from "@/server/auth";
 import { prisma, prismaCode } from "@/server/db";
 import { handle, HttpError, json, readJson } from "@/server/http";
+
+/** Pengelola akun: Sup Admin dan Ketua. */
+const requireManager = async () => {
+  const me = await requireUser();
+  if (!canManageUsers(me.role)) throw new HttpError(403, "Peran Anda tidak boleh mengelola akun");
+  return me;
+};
 
 const userSelect = {
   id: true,
@@ -15,12 +22,17 @@ const userSelect = {
   member: { select: { fullName: true } },
 } as const;
 
-/** Daftar akun (hanya Ketua). */
+/** Daftar akun (Sup Admin dan Ketua). */
 export function GET() {
   return handle(async () => {
-    const me = await requireUser(["ketua"]);
+    const me = await requireManager();
     const users = await prisma.user.findMany({
-      where: { organizationId: me.organizationId, deletedAt: null },
+      where: {
+        organizationId: me.organizationId,
+        deletedAt: null,
+        // Ketua tidak melihat akun Sup Admin.
+        ...(me.role !== "admin" && { role: { not: "admin" } }),
+      },
       select: userSelect,
       orderBy: { username: "asc" },
     });
@@ -48,11 +60,13 @@ const createSchema = z.object({
   memberId: z.uuid().nullable(),
 });
 
-/** Buat akun (hanya Ketua). */
+/** Buat akun (Sup Admin dan Ketua). Akun Sup Admin hanya bisa dibuat Sup Admin. */
 export function POST(req: Request) {
   return handle(async () => {
-    const me = await requireUser(["ketua"]);
+    const me = await requireManager();
     const body = createSchema.parse(await readJson(req));
+    if (!canAssignRole(me.role, body.role))
+      throw new HttpError(403, "Hanya Sup Admin yang boleh membuat akun Sup Admin");
     if (body.memberId) {
       const m = await prisma.member.findFirst({
         where: { id: body.memberId, organizationId: me.organizationId },

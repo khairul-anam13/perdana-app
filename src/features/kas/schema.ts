@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CATEGORY_DENDA, CATEGORY_LISTRIK } from "../../lib/auth/permissions";
 import { isoDate, rowBase, uuid } from "../../lib/schema-common";
 
 export const TX_TYPES = ["pemasukan", "pengeluaran"] as const;
@@ -8,7 +9,14 @@ export const TX_LABEL: Record<TxType, string> = {
   pengeluaran: "Pengeluaran",
 };
 
-export const INCOME_CATEGORIES = ["Iuran", "Donasi", "Kas kegiatan", "Lainnya"] as const;
+export const INCOME_CATEGORIES = [
+  "Iuran",
+  CATEGORY_LISTRIK,
+  CATEGORY_DENDA,
+  "Donasi",
+  "Kas kegiatan",
+  "Lainnya",
+] as const;
 export const EXPENSE_CATEGORIES = [
   "Konsumsi",
   "Perlengkapan",

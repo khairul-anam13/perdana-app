@@ -3,7 +3,7 @@ import { memberSchema } from "@/features/anggota/schema";
 import { activitySchema, attendanceSchema } from "@/features/kegiatan/schema";
 import { opposite } from "@/features/kas/ledger";
 import { transactionSchema } from "@/features/kas/schema";
-import { canWrite } from "@/lib/auth/permissions";
+import { canWrite, seksiKategori } from "@/lib/auth/permissions";
 import type { Change, PushResponse, PushResult } from "@/lib/sync/protocol";
 import type { AuthUser } from "../auth";
 import { nextSeq, prisma, prismaCode, withOrgLock, type Tx } from "../db";
@@ -109,8 +109,9 @@ const activityHandler: Handler = async (tx, user, c) => {
 const attendanceHandler: Handler = async (tx, user, c) => {
   const p = attendanceSchema.parse(c.payload);
   if (p.id !== c.id) reject("ID tidak cocok");
-  if (user.role === "anggota" && p.memberId !== user.memberId)
-    reject("Anggota hanya boleh mengisi absensi dirinya sendiri");
+  // Hanya yang boleh mengelola kegiatan (Ketua, Sekretaris) yang boleh mengisi absensi orang lain.
+  if (!canWrite(user.role, "activity") && p.memberId !== user.memberId)
+    reject("Anda hanya boleh mengisi absensi dirinya sendiri");
 
   await ensureInOrg(
     await tx.activity.findUnique({ where: { id: p.activityId } }),
@@ -158,6 +159,10 @@ const transactionHandler: Handler = async (tx, user, c) => {
   const p = transactionSchema.parse(c.payload);
   if (p.id !== c.id) reject("ID tidak cocok");
   if (p.deletedAt) reject("Kas tidak boleh dihapus. Gunakan koreksi.");
+  const only = seksiKategori(user.role); // Seksi: hanya pemasukan di kategorinya
+  if (only && p.category !== only) reject(`Peran Anda hanya boleh mencatat kategori ${only}`);
+  if (only && p.type === "pengeluaran" && !p.reversesTransactionId)
+    reject("Peran Anda hanya boleh mencatat pemasukan");
 
   const existing = await tx.transaction.findUnique({ where: { id: p.id } });
   if (existing) {
@@ -179,6 +184,7 @@ const transactionHandler: Handler = async (tx, user, c) => {
     await ensureInOrg(origin, user, "Transaksi yang dikoreksi");
     if (!origin) return reject("Transaksi yang dikoreksi tidak ditemukan");
     if (origin.reversesTransactionId) reject("Transaksi koreksi tidak bisa dikoreksi lagi");
+    if (only && origin.category !== only) reject(`Anda hanya boleh mengoreksi kategori ${only}`);
     if (origin.type !== opposite(p.type) || origin.amount !== p.amount)
       reject("Koreksi harus berlawanan tipe dengan nominal yang sama");
     const already = await tx.transaction.findFirst({ where: { reversesTransactionId: origin.id } });
