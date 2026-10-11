@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { Kawung } from "@/components/app/brand";
+import { BrandMark, Kawung } from "@/components/app/brand";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { IconEye, IconEyeOff, IconOffline, IconWarning } from "@/components/ui/icons";
@@ -51,14 +51,19 @@ export default function LoginPage() {
       {/* Sampul buku folio: punggung kain merah, motif kawung, label putih bergaris. */}
       <div className="relative overflow-hidden border-l-[14px] border-merah-600 bg-sampul px-6 pt-[max(2.5rem,env(safe-area-inset-top))] pb-10">
         <Kawung />
-        <div className="relative rounded-sm bg-lembar px-5 pt-4 pb-5 shadow-angkat">
-          <h1 className="border-b-2 border-pulpen-600 pb-1 font-display text-4xl font-black text-tinta">
-            Perdana
-          </h1>
-          <p className="mt-2 border-b border-garis pb-1.5 text-tinta">
-            Buku kas, anggota, dan kegiatan
-          </p>
-          <p className="mt-1.5 border-b border-garis pb-1.5 text-tinta-pudar">Karang Taruna</p>
+        <div className="relative flex items-center gap-4 rounded-sm bg-lembar px-5 py-4 shadow-angkat">
+          <BrandMark className="h-20" />
+          <div className="min-w-0 flex-1">
+            <h1 className="border-b-2 border-pulpen-600 pb-1 font-display text-4xl font-black text-tinta">
+              Perdana
+            </h1>
+            <p className="mt-2 border-b border-garis pb-1.5 text-sm text-tinta">
+              Karang Taruna Blorong
+            </p>
+            <p className="mt-1.5 border-b border-garis pb-1.5 text-sm text-tinta-pudar">
+              Kas, anggota, kegiatan
+            </p>
+          </div>
         </div>
       </div>
 
