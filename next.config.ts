@@ -17,6 +17,7 @@ const shellRoutes = [
   "/kegiatan/detail",
   "/akun",
   "/akun/pengguna",
+  "/adart",
   "/~offline",
 ];
 const revision = randomUUID();

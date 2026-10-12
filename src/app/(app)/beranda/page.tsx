@@ -15,9 +15,12 @@ import { balance, iuranPaid, summarize } from "@/features/kas/ledger";
 import { Saldo } from "@/features/kas/saldo-card";
 import { CATEGORY_IURAN } from "@/features/kas/schema";
 import { useLedger } from "@/features/kas/use-ledger";
+import { BAB } from "@/features/adart/data";
 import { useLookups } from "@/features/use-lookups";
 
 const BULAN_PENDEK = "Jan Feb Mar Apr Mei Jun Jul Agu Sep Okt Nov Des".split(" ");
+
+const JUMLAH_PASAL = BAB.reduce((n, x) => n + x.pasal.length, 0);
 
 function Baris({ href, label, children }: { href: string; label: string; children: ReactNode }) {
   return (
@@ -176,6 +179,17 @@ export default function BerandaPage() {
             </Baris>
             <Baris href="/anggota" label="Anggota aktif">
               <span>{active.length} orang</span>
+            </Baris>
+          </ul>
+        </section>
+
+        <section aria-labelledby="aturan">
+          <h2 id="aturan" className="mb-2 font-display text-lg font-bold">
+            Aturan organisasi
+          </h2>
+          <ul className="lembar divide-y divide-garis overflow-hidden">
+            <Baris href="/adart" label="AD/ART Karang Taruna">
+              <span>{JUMLAH_PASAL} pasal, bisa dicari</span>
             </Baris>
           </ul>
         </section>
