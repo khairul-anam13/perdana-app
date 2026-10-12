@@ -26,7 +26,7 @@ export function PageHeader({
       )}
       <div className={`flex items-start justify-between gap-3 ${back ? "" : "pt-2"}`}>
         <div className="min-w-0">
-          <h1 className="font-display text-[1.7rem] leading-tight font-bold text-balance">
+          <h1 className="font-display text-[1.7rem] leading-tight font-bold text-balance ios:text-[2.125rem] ios:leading-[1.1] ios:tracking-tight">
             {title}
           </h1>
           {subtitle && <p className="mt-1 text-tinta-pudar">{subtitle}</p>}

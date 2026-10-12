@@ -2,16 +2,27 @@ import type { ReactNode } from "react";
 
 /** Layar kosong = halaman buku yang belum ditulisi, dengan ajakan mengisi baris pertama. */
 export function EmptyState({
+  icon,
   title,
   hint,
   action,
 }: {
+  /** ikon pembantu di atas judul; sebaiknya satu ikon yang menggambarkan isi daftar */
+  icon?: ReactNode;
   title: string;
   hint?: string;
   action?: ReactNode;
 }) {
   return (
-    <div className="lembar flex flex-col items-start gap-2 border-dashed px-5 py-7 shadow-none">
+    <div className="lembar flex flex-col items-start gap-2 border-dashed px-5 py-7 shadow-none ios:items-center ios:text-center">
+      {icon && (
+        <span
+          aria-hidden
+          className="mb-1 grid size-12 place-items-center rounded-[22%] bg-pulpen-100 text-pulpen-700"
+        >
+          {icon}
+        </span>
+      )}
       <p className="font-display text-lg font-bold">{title}</p>
       {hint && <p className="max-w-sm text-tinta-pudar">{hint}</p>}
       {action && <div className="mt-2">{action}</div>}

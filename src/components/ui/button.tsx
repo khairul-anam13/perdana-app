@@ -6,12 +6,12 @@ type Size = "md" | "lg" | "sm";
 
 /* Tepi bawah tebal = tombol timbul; saat ditekan tombol turun 1px. */
 const base =
-  "inline-flex select-none items-center justify-center gap-2 rounded-md border-b-2 text-center font-bold leading-tight transition-[background-color,transform] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0 aria-busy:cursor-progress";
+  "inline-flex select-none items-center justify-center gap-2 rounded-md border-b-2 text-center font-bold leading-tight transition-[background-color,transform,opacity] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0 aria-busy:cursor-progress ios:border-b-0 ios:font-semibold ios:active:translate-y-0 ios:active:opacity-60";
 
 const variants: Record<Variant, string> = {
   primary: "border-pulpen-800 bg-pulpen-600 text-white hover:bg-pulpen-700 active:bg-pulpen-800",
   secondary:
-    "border border-b-2 border-garis-kuat bg-lembar text-tinta hover:bg-pulpen-50 active:bg-pulpen-100",
+    "border border-b-2 border-garis-kuat bg-lembar text-tinta hover:bg-pulpen-50 active:bg-pulpen-100 ios:border-0 ios:bg-pulpen-100 ios:text-pulpen-700 ios:hover:bg-pulpen-100 ios:active:bg-pulpen-100",
   ghost: "border-transparent text-pulpen-600 hover:bg-pulpen-50 active:bg-pulpen-100",
   danger: "border-merah-700 bg-merah-600 text-white hover:bg-merah-700 active:bg-merah-700",
 };

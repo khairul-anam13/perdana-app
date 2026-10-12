@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ListSkeleton } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/field";
-import { IconChevronRight, IconPlus, IconSearch } from "@/components/ui/icons";
+import { IconChevronRight, IconPlus, IconSearch, IconUsers } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/page-header";
 import { usePerm } from "@/lib/auth/use-perm";
 import { ageFlag } from "@/features/anggota/age";
@@ -157,6 +157,7 @@ export default function AnggotaPage() {
         ) : shown.length === 0 ? (
           members.length === 0 ? (
             <EmptyState
+              icon={<IconUsers className="size-6" />}
               title="Belum ada anggota"
               hint={
                 canEdit
@@ -171,6 +172,7 @@ export default function AnggotaPage() {
             />
           ) : (
             <EmptyState
+              icon={<IconSearch className="size-6" />}
               title={needle ? `Tidak ada "${q.trim()}"` : "Tidak ada anggota di sini"}
               hint="Periksa ejaan, atau cari di semua status."
               action={

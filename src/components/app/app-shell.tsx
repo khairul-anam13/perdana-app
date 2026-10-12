@@ -58,7 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh md:pl-60">
-      <header className="di-sampul sticky top-0 z-30 border-b border-garis bg-kertas/95 pt-[env(safe-area-inset-top)] md:fixed md:inset-x-auto md:left-2 md:z-50 md:w-58 md:border-b-0 md:bg-transparent">
+      <header className="di-sampul sticky top-0 z-30 border-b border-garis bg-kertas/95 pt-[env(safe-area-inset-top)] md:fixed md:inset-x-auto md:left-2 md:z-50 md:w-58 md:border-b-0 md:bg-transparent ios:max-md:bg-kertas/75 ios:max-md:backdrop-blur-xl ios:max-md:backdrop-saturate-150">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-1.5 md:max-w-none md:flex-col md:items-start md:py-5">
           <div className="min-w-0">
             <Wordmark className="md:text-white" />

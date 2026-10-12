@@ -121,6 +121,20 @@ Aturan yang dijaga: komponen UI hanya memanggil **repository lokal** (tidak lang
 **dan** antrean outbox dalam satu transaksi; hak akses ditegakkan di **server** (UI hanya menyembunyikan tombol).
 Menambah modul baru = folder baru di `features/`, satu entitas di `lib/sync/protocol.ts`, satu handler di `server/sync/push.ts`.
 
+## Tema tampilan
+
+Dua gaya, dipilih di **Akun → Tampilan** dan disimpan per HP (`localStorage`, tidak memengaruhi data atau pengguna lain):
+
+| Tema     | Ciri                                                                                                      |
+| -------- | --------------------------------------------------------------------------------------------------------- |
+| Buku Kas | Kertas bergaris, huruf kuitansi (Besley), kolom tanggal garis merah ganda, stempel Lunas.                 |
+| iOS      | Latar abu-abu kelompok, huruf sistem, sudut membulat, kontrol tinted, bilah tab buram, sheet berpegangan. |
+
+Cara kerja: atribut `data-tema` pada `<html>` mengganti variabel CSS (warna, huruf, radius, bentuk komponen) di
+`src/app/globals.css`; perbedaan bentuk per komponen memakai varian Tailwind `ios:`. Skrip kecil di `<head>`
+memasang tema sebelum halaman tampil, jadi tidak berkedip. Menambah tema = satu blok `html[data-tema="..."]`
+dan satu entri di `src/lib/tema.ts`.
+
 ## Produksi di Vercel + Supabase
 
 Alamat: `https://perdanaku.vercel.app`. Database: Supabase (Singapura); fungsi Vercel dipasang di `sin1` (`vercel.json`)

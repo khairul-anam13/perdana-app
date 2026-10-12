@@ -34,10 +34,15 @@ export function Sheet({
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
       aria-label={title}
-      className="fixed inset-x-0 top-auto bottom-0 m-0 max-h-[92dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-xl border-t-4 border-pulpen-600 bg-lembar p-0 text-tinta shadow-angkat open:animate-sheet-in md:inset-0 md:m-auto md:h-fit md:max-w-lg md:rounded-xl"
+      className="fixed inset-x-0 top-auto bottom-0 m-0 max-h-[92dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-xl border-t-4 border-pulpen-600 bg-lembar p-0 text-tinta shadow-angkat open:animate-sheet-in md:inset-0 md:m-auto md:h-fit md:max-w-lg md:rounded-xl ios:border-t-0 ios:open:animate-[sheet-in_0.38s_cubic-bezier(0.32,0.72,0,1)]"
     >
       {open && (
         <div className="px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+          {/* Pegangan sheet ala iOS; tak dipakai di tema Folio. */}
+          <div
+            aria-hidden
+            className="mx-auto -mt-1 mb-3 hidden h-1.5 w-10 rounded-full bg-garis-kuat/50 ios:block"
+          />
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="font-display text-xl leading-tight font-bold">{title}</h2>
             <button

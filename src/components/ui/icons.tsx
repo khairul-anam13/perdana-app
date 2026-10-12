@@ -1,6 +1,22 @@
 import { config, type IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
   faArrowDown,
+  faBoxOpen,
+  faBolt,
+  faBookOpen,
+  faBuildingColumns,
+  faCircleCheck,
+  faCircleInfo,
+  faDatabase,
+  faEllipsis,
+  faGavel,
+  faHeart,
+  faLock,
+  faMobileScreen,
+  faPalette,
+  faPen,
+  faTruck,
+  faUtensils,
   faArrowUp,
   faCalendarCheck,
   faCamera,
@@ -85,6 +101,24 @@ export const IconMapPin = make(faLocationDot);
 export const IconReport = make(faFileLines);
 export const IconDues = make(faHandHoldingDollar);
 export const IconEnvelope = make(faEnvelope);
+
+// Pembantu UI
+export const IconBook = make(faBookOpen);
+export const IconPalette = make(faPalette);
+export const IconBolt = make(faBolt);
+export const IconGavel = make(faGavel);
+export const IconHeart = make(faHeart);
+export const IconUtensils = make(faUtensils);
+export const IconBox = make(faBoxOpen);
+export const IconTruck = make(faTruck);
+export const IconBuilding = make(faBuildingColumns);
+export const IconEllipsis = make(faEllipsis);
+export const IconLock = make(faLock);
+export const IconPen = make(faPen);
+export const IconCircleCheck = make(faCircleCheck);
+export const IconInfo = make(faCircleInfo);
+export const IconDatabase = make(faDatabase);
+export const IconMobile = make(faMobileScreen);
 
 // Merek (Brands)
 export const IconWhatsapp = make(faWhatsapp);

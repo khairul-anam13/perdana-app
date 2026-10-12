@@ -12,6 +12,8 @@ const control =
 
 type FieldProps = {
   label: string;
+  /** ikon kecil di sebelah label, membantu mengenali isian sekilas */
+  icon?: ReactNode;
   error?: string;
   hint?: string;
   children: (props: {
@@ -23,12 +25,17 @@ type FieldProps = {
 };
 
 /** Label + isian + pesan. Render-prop agar id/aria terpasang benar pada elemen isian apa pun. */
-export function Field({ label, error, hint, children, className = "" }: FieldProps) {
+export function Field({ label, icon, error, hint, children, className = "" }: FieldProps) {
   const id = useId();
   const noteId = `${id}-note`;
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-bold text-tinta">
+      <label htmlFor={id} className="mb-1.5 flex items-center gap-1.5 text-sm font-bold text-tinta">
+        {icon && (
+          <span aria-hidden className="text-tinta-pudar [&>svg]:size-3.5">
+            {icon}
+          </span>
+        )}
         {label}
       </label>
       {children({

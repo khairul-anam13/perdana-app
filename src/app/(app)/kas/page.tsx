@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, ListSkeleton } from "@/components/ui/empty-state";
 import { Select } from "@/components/ui/field";
-import { IconDues, IconPlus, IconReport } from "@/components/ui/icons";
+import { IconDues, IconPlus, IconReport, IconWallet } from "@/components/ui/icons";
 import { MonthNav } from "@/components/ui/month-nav";
 import { PageHeader } from "@/components/ui/page-header";
 import { Segmented } from "@/components/ui/segmented";
@@ -135,6 +135,7 @@ export default function KasPage() {
           <ListSkeleton />
         ) : groups.length === 0 ? (
           <EmptyState
+            icon={<IconWallet className="size-6" />}
             title={
               txs.length === 0
                 ? "Buku kas masih kosong"

@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { IconCamera } from "@/components/ui/icons";
+import { IkonKategori } from "./category-icon";
 import { formatAngka, formatRupiah } from "@/lib/format/rupiah";
 import type { Transaction } from "./schema";
 
@@ -26,10 +27,18 @@ export function TransactionRow({
       <button
         type="button"
         onClick={onOpen}
-        className="flex min-h-16 w-full items-start gap-3 px-3 py-2.5 text-left -outline-offset-2 hover:bg-pulpen-50 active:bg-pulpen-100"
+        className="flex min-h-16 w-full items-start gap-2.5 px-3 py-2.5 text-left -outline-offset-2 hover:bg-pulpen-50 active:bg-pulpen-100"
       >
+        <span
+          aria-hidden
+          className={`grid size-9 shrink-0 place-items-center rounded-[22%] ${
+            income ? "bg-pulpen-100 text-pulpen-700" : "bg-merah-100 text-merah-700"
+          }`}
+        >
+          <IkonKategori category={tx.category} className="size-[1.1rem]" />
+        </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-bold">{tx.category}</span>
+          <span className="block leading-tight font-bold">{tx.category}</span>
           <span className="block truncate text-sm text-tinta-pudar">
             {detail || tx.note || "Tanpa keterangan"}
           </span>

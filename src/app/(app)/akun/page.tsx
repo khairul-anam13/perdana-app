@@ -7,7 +7,7 @@ import { InstallHint } from "@/components/app/install-hint";
 import { useSyncSummary } from "@/components/app/sync-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { IconLogout, IconSync, IconUsers } from "@/components/ui/icons";
+import { IconDatabase, IconLogout, IconSync, IconUsers } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/page-header";
 import { useToast } from "@/components/ui/toast";
 import { logout } from "@/lib/auth/client";
@@ -18,6 +18,7 @@ import { formatRupiah } from "@/lib/format/rupiah";
 import { formatWaktu } from "@/lib/format/tanggal";
 import { discardRejected, syncNow } from "@/lib/sync/engine";
 import { ATTENDANCE_LABEL } from "@/features/kegiatan/schema";
+import { TemaPilihan } from "@/features/akun/tema-pilihan";
 
 const ENTITY_LABEL = {
   member: "Anggota",
@@ -103,8 +104,12 @@ export default function AkunPage() {
           </div>
         </section>
 
+        <TemaPilihan />
+
         <section id="sinkron" aria-label="Sinkronisasi" className="lembar scroll-mt-20 p-4">
-          <h2 className="mb-1 font-display text-lg font-bold">Sinkronisasi</h2>
+          <h2 className="mb-1 flex items-center gap-2 font-display text-lg font-bold">
+            <IconSync className="size-5 text-pulpen-600" /> Sinkronisasi
+          </h2>
           <p className="text-sm text-tinta-pudar">
             Data disimpan di HP dulu, lalu dikirim ke server saat ada internet.
           </p>
@@ -163,7 +168,9 @@ export default function AkunPage() {
         </section>
 
         <section aria-label="Penyimpanan" className="lembar p-4">
-          <h2 className="mb-1 font-display text-lg font-bold">Penyimpanan di HP</h2>
+          <h2 className="mb-1 flex items-center gap-2 font-display text-lg font-bold">
+            <IconDatabase className="size-5 text-pulpen-600" /> Penyimpanan di HP
+          </h2>
           <p className="text-sm text-tinta-pudar">
             Penyimpanan permanen mencegah browser menghapus data offline saat memori HP penuh.
           </p>

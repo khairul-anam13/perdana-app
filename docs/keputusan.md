@@ -96,6 +96,17 @@ penyimpanan tambahan. Pindah ke object storage bila volume membesar.
   `height:1em` bawaan FA. Tanpa ini ikon `size-5` tampil 1em. Ikon diberi `shrink-0` supaya tidak menyusut di baris flex.
 - Ciri khas visual ada di `globals.css` (arah "Buku Kas Folio"): kolom tanggal bergaris merah ganda, jumlah bergaris bawah ganda, stempel LUNAS, coretan stabilo. Ikon hanya dipakai bila membantu fungsi (navigasi, aksi), bukan hiasan.
 
+## Tema tampilan
+
+- **Per perangkat, bukan per akun.** Pilihan di `localStorage` (`perdana.tema`): berlaku offline, tanpa migrasi database,
+  dan HP bersama tidak saling menimpa. Konsekuensinya pilihan tidak ikut pindah ke HP lain.
+- **Variabel CSS untuk warna/huruf/radius, varian `ios:` untuk bentuk.** Token `pulpen/merah/stempel/stabilo` tetap dipakai di
+  semua komponen; tema iOS hanya mengganti nilainya, jadi satu komponen melayani dua tema.
+- **Warna iOS disesuaikan untuk kontras.** Biru sistem #007AFF hanya 4:1 dengan putih; dipakai #0066CC (AA untuk teks kecil).
+  Begitu juga merah #D70015 dan hijau #1F7A35.
+- **Mode gelap belum ada** (iOS punya, tetapi bukan permintaan saat ini).
+- **Saldo bisa disembunyikan** di kartu beranda (`perdana.saldoSembunyi`), seperti aplikasi bank; tersimpan per HP.
+
 ## Alat dan versi
 
 - **TypeScript 6 + ESLint 9** (bukan 7 / 10): `typescript-eslint` belum mendukung TypeScript 7 dan

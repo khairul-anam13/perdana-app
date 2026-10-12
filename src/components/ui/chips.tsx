@@ -1,6 +1,7 @@
 "use client";
 
-import { IconWarning } from "./icons";
+import type { ComponentType } from "react";
+import { IconWarning, type IconProps } from "./icons";
 
 /** Deretan pilihan cepat (satu terpilih). Lebih cepat dari dropdown untuk daftar pendek. */
 export function Chips<T extends string>({
@@ -9,12 +10,15 @@ export function Chips<T extends string>({
   value,
   onChange,
   error,
+  icons,
 }: {
   label: string;
   options: readonly T[];
   value: T | "";
   onChange: (v: T) => void;
   error?: string;
+  /** ikon kecil sebelum label tiap pilihan (membantu mengenali kategori sekilas) */
+  icons?: Partial<Record<T, ComponentType<IconProps>>>;
 }) {
   return (
     <div role="radiogroup" aria-label={label} aria-invalid={error ? true : undefined}>
@@ -22,6 +26,7 @@ export function Chips<T extends string>({
       <div className="flex flex-wrap gap-2">
         {options.map((o) => {
           const active = o === value;
+          const Icon = icons?.[o] as ComponentType<IconProps> | undefined;
           return (
             <button
               key={o}
@@ -29,12 +34,13 @@ export function Chips<T extends string>({
               role="radio"
               aria-checked={active}
               onClick={() => onChange(o)}
-              className={`min-h-11 rounded-md border px-3.5 text-sm font-bold transition-colors ${
+              className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-3.5 text-sm font-bold transition-colors ios:rounded-full ${
                 active
                   ? "border-pulpen-600 bg-pulpen-600 text-white"
                   : `bg-lembar text-tinta hover:bg-pulpen-50 active:bg-pulpen-100 ${error ? "border-merah-600" : "border-garis-kuat"}`
               }`}
             >
+              {Icon && <Icon className="size-4" />}
               {o}
             </button>
           );

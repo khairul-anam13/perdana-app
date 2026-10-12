@@ -5,7 +5,14 @@ import { useEffect, useState, type FormEvent } from "react";
 import { BrandMark, Kawung } from "@/components/app/brand";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
-import { IconEye, IconEyeOff, IconOffline, IconWarning } from "@/components/ui/icons";
+import {
+  IconEye,
+  IconEyeOff,
+  IconLock,
+  IconOffline,
+  IconUser,
+  IconWarning,
+} from "@/components/ui/icons";
 import { login } from "@/lib/auth/client";
 import { isExpired } from "@/lib/auth/session";
 import { useSession } from "@/lib/auth/use-session";
@@ -49,7 +56,7 @@ export default function LoginPage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col">
       {/* Sampul buku folio: punggung kain merah, motif kawung, label putih bergaris. */}
-      <div className="relative overflow-hidden border-l-[14px] border-merah-600 bg-sampul px-6 pt-[max(2.5rem,env(safe-area-inset-top))] pb-10">
+      <div className="relative overflow-hidden border-l-[14px] border-merah-600 bg-sampul px-6 pt-[max(2.5rem,env(safe-area-inset-top))] pb-10 ios:border-l-0 ios:bg-transparent">
         <Kawung />
         <div className="relative flex items-center gap-4 rounded-sm bg-lembar px-5 py-4 shadow-angkat">
           <BrandMark className="h-20" />
@@ -81,7 +88,7 @@ export default function LoginPage() {
           </p>
         )}
 
-        <Field label="Username">
+        <Field label="Username" icon={<IconUser />}>
           {(p) => (
             <Input
               {...p}
@@ -96,7 +103,7 @@ export default function LoginPage() {
           )}
         </Field>
 
-        <Field label="PIN (6 angka)">
+        <Field label="PIN (6 angka)" icon={<IconLock />}>
           {(p) => (
             <div className="relative">
               <Input

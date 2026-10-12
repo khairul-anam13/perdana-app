@@ -105,7 +105,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             role={t.tone === "error" ? "alert" : "status"}
-            className={`pointer-events-auto flex max-w-md animate-toast-in items-center gap-2.5 rounded-md border-l-[6px] px-4 py-3 text-sm font-bold shadow-angkat ${toneStyle[t.tone]}`}
+            className={`pointer-events-auto flex max-w-md animate-toast-in items-center gap-2.5 rounded-md border-l-[6px] px-4 py-3 text-sm font-bold shadow-angkat ios:rounded-2xl ios:border-l-0 ios:font-semibold ${toneStyle[t.tone]}`}
           >
             {t.tone === "ok" ? (
               <IconCheck className="size-5 shrink-0 text-stempel-100" />

@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Schibsted_Grotesk, Besley } from "next/font/google";
 import { SwRegister } from "@/components/app/sw-register";
+import { TemaInit } from "@/components/app/tema-init";
 import { ToastProvider } from "@/components/ui/toast";
+import { SKRIP_TEMA } from "@/lib/tema";
 import "./globals.css";
 
 // Schibsted Grotesk: teks dan angka (tabular) yang tegas dan mudah dibaca di luar ruangan.
@@ -33,10 +35,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={`${schibsted.variable} ${besley.variable}`}>
+    <html lang="id" className={`${schibsted.variable} ${besley.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SKRIP_TEMA }} />
+      </head>
       <body className="bg-kertas text-tinta antialiased">
         <ToastProvider>{children}</ToastProvider>
         <SwRegister />
+        <TemaInit />
       </body>
     </html>
   );

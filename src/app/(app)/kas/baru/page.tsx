@@ -6,7 +6,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Chips } from "@/components/ui/chips";
 import { ListSkeleton } from "@/components/ui/empty-state";
 import { Field, Input, Select } from "@/components/ui/field";
-import { IconCamera, IconX } from "@/components/ui/icons";
+import { IconCalendar, IconCamera, IconPen, IconUsers, IconX } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/page-header";
 import { Segmented } from "@/components/ui/segmented";
 import { useToast } from "@/components/ui/toast";
@@ -15,6 +15,7 @@ import { formatAngka, formatRupiah, parseRupiah } from "@/lib/format/rupiah";
 import { todayISO } from "@/lib/format/tanggal";
 import { compressImage } from "@/lib/image/compress";
 import { useLookups } from "@/features/use-lookups";
+import { CATEGORY_ICON } from "@/features/kas/category-icon";
 import { saveTransaction } from "@/features/kas/repository";
 import {
   CATEGORY_IURAN,
@@ -149,8 +150,10 @@ function Form() {
           }}
           options={TYPE_OPTIONS}
           tones={{
-            pemasukan: "bg-pulpen-600 text-white",
-            pengeluaran: "bg-merah-600 text-white",
+            pemasukan:
+              "bg-pulpen-600 text-white ios:bg-lembar ios:text-pulpen-600 ios:shadow-[0_1px_3px_rgb(0_0_0/0.2)]",
+            pengeluaran:
+              "bg-merah-600 text-white ios:bg-lembar ios:text-merah-600 ios:shadow-[0_1px_3px_rgb(0_0_0/0.2)]",
           }}
         />
       )}
@@ -198,10 +201,11 @@ function Form() {
         value={category as (typeof categories)[number] | ""}
         onChange={setCategory}
         error={errors.category}
+        icons={CATEGORY_ICON}
       />
 
       {isIuran && (
-        <Field label="Anggota yang membayar" error={errors.memberId}>
+        <Field label="Anggota yang membayar" icon={<IconUsers />} error={errors.memberId}>
           {(p) => (
             <Select {...p} value={memberId} onChange={(e) => setMemberId(e.target.value)}>
               <option value="">Pilih anggota…</option>
@@ -215,7 +219,7 @@ function Form() {
         </Field>
       )}
 
-      <Field label="Tanggal" error={errors.transactionDate}>
+      <Field label="Tanggal" icon={<IconCalendar />} error={errors.transactionDate}>
         {(p) => (
           <Input
             {...p}
@@ -227,7 +231,7 @@ function Form() {
         )}
       </Field>
 
-      <Field label="Keterangan (boleh kosong)" error={errors.note}>
+      <Field label="Keterangan (boleh kosong)" icon={<IconPen />} error={errors.note}>
         {(p) => (
           <Input
             {...p}
@@ -240,7 +244,7 @@ function Form() {
       </Field>
 
       {activities.length > 0 && (
-        <Field label="Terkait kegiatan (boleh kosong)">
+        <Field label="Terkait kegiatan (boleh kosong)" icon={<IconCalendar />}>
           {(p) => (
             <Select {...p} value={activityId} onChange={(e) => setActivityId(e.target.value)}>
               <option value="">Tidak terkait kegiatan</option>

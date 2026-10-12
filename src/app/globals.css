@@ -3,6 +3,15 @@
 @import "@fortawesome/fontawesome-svg-core/styles.css" layer(components);
 
 /*
+ * Tema tampilan. Dua gaya, dipilih di Akun > Tampilan dan disimpan di HP (atribut data-tema pada <html>):
+ *   (tanpa atribut) "Buku Kas Folio" - kertas, garis buku, huruf kuitansi.
+ *   data-tema="ios"  gaya iOS (Apple HIG) - latar abu-abu kelompok, sudut membulat, kontrol tinted, bar buram.
+ * Warna, huruf, radius, dan variabel komponen diganti lewat variabel CSS di bawah; perbedaan bentuk
+ * yang tak bisa lewat variabel ditulis di komponen dengan varian `ios:`.
+ */
+@custom-variant ios (&:where(html[data-tema="ios"] *));
+
+/*
  * Arah visual "Buku Kas Folio": aplikasi ini menggantikan buku kas dan daftar hadir kertas,
  * jadi bahasanya diambil dari sana dan tiap warna punya satu arti:
  *   pulpen  (biru)   = tinta: aksi utama dan uang masuk
@@ -87,17 +96,120 @@
   /* Stempel ditekan ke kertas: besar lalu mendarat. */
   @keyframes cap {
     from {
-      transform: rotate(-7deg) scale(1.7);
+      transform: rotate(var(--cap-rot)) scale(1.7);
       opacity: 0;
     }
     to {
-      transform: rotate(-7deg) scale(1);
+      transform: rotate(var(--cap-rot)) scale(1);
       opacity: 1;
     }
   }
 }
 
 @layer base {
+  /* Bentuk komponen kustom; tema iOS menimpanya di bawah. */
+  :root {
+    --r-lembar: 0.5rem;
+    --border-lembar: 1px solid var(--color-garis);
+    --bayangan-lembar: var(--shadow-lembar);
+    --kolom-garis: 3px double var(--color-merah-600);
+    --jumlah-garis: 4px double currentColor;
+    --stabilo-bg: linear-gradient(
+      transparent 12%,
+      var(--color-stabilo-300) 12% 88%,
+      transparent 88%
+    );
+    --stabilo-r: 0;
+    --stabilo-pad: 0 0.25em;
+    --cap-rot: -7deg;
+    --cap-border: 2px solid currentColor;
+    --cap-bg: transparent;
+    --cap-font: var(--font-display);
+    --cap-weight: 800;
+    --cap-ls: 0.08em;
+    --cap-tt: uppercase;
+    --cap-r: 0.25rem;
+    --cap-pad: 0.05em 0.45em;
+    --kartu-bg: var(--color-sampul);
+    --kartu-r: 0.75rem;
+    --kartu-spine: 14px solid var(--color-merah-600);
+    --backdrop: color-mix(in srgb, var(--color-sampul) 60%, transparent);
+  }
+
+  html[data-tema="ios"] {
+    --font-sans:
+      -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, "Segoe UI",
+      Roboto, sans-serif;
+    --font-display:
+      -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, "Segoe UI",
+      Roboto, sans-serif;
+
+    /* Warna sistem iOS, disesuaikan sedikit supaya teks kecil lolos kontras WCAG AA. */
+    --color-kertas: #f2f2f7;
+    --color-lembar: #ffffff;
+    --color-tinta: #000000;
+    --color-tinta-pudar: #636366;
+    --color-garis: #e5e5ea;
+    --color-garis-kuat: #8e8e93;
+
+    --color-pulpen-50: #eaf3ff;
+    --color-pulpen-100: #d6e7ff;
+    --color-pulpen-600: #0066cc;
+    --color-pulpen-700: #0055b3;
+    --color-pulpen-800: #00448f;
+
+    --color-merah-50: #fff0f0;
+    --color-merah-100: #ffd9dc;
+    --color-merah-600: #d70015;
+    --color-merah-700: #b0000f;
+
+    --color-stempel-50: #eefaf1;
+    --color-stempel-100: #d9f4e0;
+    --color-stempel-600: #1f7a35;
+    --color-stempel-700: #17632a;
+
+    --color-stabilo-100: #fff5cc;
+    --color-stabilo-300: #ffd60a;
+    --color-stabilo-800: #6b4f00;
+
+    --color-sampul: #1c1c1e;
+    --color-sampul-terang: #2c2c2e;
+
+    /* Sudut membulat ala iOS: kontrol 12, kartu 14, sheet 20. */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 0.875rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.375rem;
+    --shadow-angkat: 0 8px 30px rgb(0 0 0 / 0.18);
+
+    --r-lembar: 0.875rem;
+    --border-lembar: 1px solid transparent;
+    --bayangan-lembar: none;
+    --kolom-garis: 1px solid var(--color-garis);
+    --jumlah-garis: 0 solid transparent;
+    --stabilo-bg: var(--color-stabilo-100);
+    --stabilo-r: 0.375rem;
+    --stabilo-pad: 0.05em 0.45em;
+    --cap-rot: 0deg;
+    --cap-border: 0 solid transparent;
+    --cap-bg: var(--color-stempel-100);
+    --cap-font: var(--font-sans);
+    --cap-weight: 600;
+    --cap-ls: 0;
+    --cap-tt: none;
+    --cap-r: 999px;
+    --cap-pad: 0.15em 0.7em;
+    --kartu-bg: linear-gradient(150deg, #0a6cf0 0%, #0050b8 100%);
+    --kartu-r: 1.375rem;
+    --kartu-spine: 0 solid transparent;
+    --backdrop: rgb(0 0 0 / 0.4);
+  }
+  html[data-tema="ios"] body {
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+  }
+
   html {
     font-size: 106.25%; /* 17px: nyaman dibaca di luar ruangan */
     -webkit-text-size-adjust: 100%;
@@ -125,7 +237,7 @@
     touch-action: manipulation;
   }
   dialog::backdrop {
-    background: color-mix(in srgb, var(--color-sampul) 60%, transparent);
+    background: var(--backdrop);
     animation: fade-in 0.18s ease-out;
   }
 }
@@ -134,39 +246,49 @@
   /* Selembar kertas buku: dasar semua daftar dan panel. */
   .lembar {
     background: var(--color-lembar);
-    border: 1px solid var(--color-garis);
-    border-radius: 0.5rem;
-    box-shadow: var(--shadow-lembar);
+    border: var(--border-lembar);
+    border-radius: var(--r-lembar);
+    box-shadow: var(--bayangan-lembar);
   }
-  /* Kolom tanggal di kiri, dibatasi garis merah ganda seperti buku kas. */
+  /* Kolom tanggal di kiri: garis merah ganda seperti buku kas (iOS: garis pemisah tipis). */
   .kolom-tanggal {
-    border-right: 3px double var(--color-merah-600);
+    border-right: var(--kolom-garis);
   }
   /* Jumlah akhir: garis ganda di bawah angka, kebiasaan pembukuan. */
   .jumlah {
-    border-bottom: 4px double currentColor;
+    border-bottom: var(--jumlah-garis);
     padding-bottom: 0.15em;
   }
   /* Coretan stabilo di atas teks. */
   .stabilo {
-    background: linear-gradient(transparent 12%, var(--color-stabilo-300) 12% 88%, transparent 88%);
-    padding-inline: 0.25em;
+    background: var(--stabilo-bg);
+    border-radius: var(--stabilo-r);
+    padding: var(--stabilo-pad);
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
   }
   /* Stempel karet. Huruf besar di sini meniru stempel asli, bukan gaya label. */
   .cap {
     display: inline-block;
-    transform: rotate(-7deg);
-    border: 2px solid currentColor;
-    border-radius: 0.25rem;
-    padding: 0.05em 0.45em;
-    font-family: var(--font-display);
-    font-weight: 800;
+    transform: rotate(var(--cap-rot));
+    border: var(--cap-border);
+    border-radius: var(--cap-r);
+    background: var(--cap-bg);
+    padding: var(--cap-pad);
+    font-family: var(--cap-font);
+    font-weight: var(--cap-weight);
     font-size: 0.8rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: var(--cap-ls);
+    text-transform: var(--cap-tt);
     color: var(--color-stempel-600);
+  }
+  /* Kartu saldo di beranda: sampul buku kas (Folio) atau kartu biru (iOS). */
+  .kartu-saldo {
+    background: var(--kartu-bg);
+    border-left: var(--kartu-spine);
+    border-radius: var(--kartu-r);
+    color: #fff;
+    box-shadow: var(--shadow-angkat);
   }
   /* Pemutar tanda sedang bekerja di dalam tombol. */
   .pemutar {

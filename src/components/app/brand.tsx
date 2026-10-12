@@ -19,9 +19,9 @@ export function Wordmark({ className = "" }: { className?: string }) {
 }
 
 /** Motif kawung (batik Jawa Tengah) seperti sampul buku folio. Dipakai di sampul halaman masuk. */
-export function Kawung() {
+export function Kawung({ className = "" }: { className?: string }) {
   return (
-    <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
+    <svg className={`absolute inset-0 h-full w-full ios:hidden ${className}`} aria-hidden="true">
       <defs>
         <pattern id="kawung" width="28" height="28" patternUnits="userSpaceOnUse">
           <g fill="#22335c">

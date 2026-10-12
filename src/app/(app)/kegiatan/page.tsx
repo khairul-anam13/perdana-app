@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ListSkeleton } from "@/components/ui/empty-state";
-import { IconChevronRight, IconMapPin, IconPlus } from "@/components/ui/icons";
+import { IconCalendar, IconChevronRight, IconMapPin, IconPlus } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/page-header";
 import { Segmented } from "@/components/ui/segmented";
 import { usePerm } from "@/lib/auth/use-perm";
@@ -82,6 +82,7 @@ export default function KegiatanPage() {
           <ListSkeleton />
         ) : shown.length === 0 ? (
           <EmptyState
+            icon={<IconCalendar className="size-6" />}
             title={
               tab === "mendatang" ? "Belum ada kegiatan mendatang" : "Belum ada kegiatan yang lewat"
             }

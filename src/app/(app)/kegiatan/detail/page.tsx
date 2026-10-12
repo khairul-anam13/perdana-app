@@ -6,7 +6,7 @@ import { Suspense, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { EmptyState, ListSkeleton } from "@/components/ui/empty-state";
-import { IconMapPin, IconUser } from "@/components/ui/icons";
+import { IconCheck, IconEnvelope, IconMapPin, IconUser } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/page-header";
 import { useToast } from "@/components/ui/toast";
 import { usePerm } from "@/lib/auth/use-perm";
@@ -241,6 +241,11 @@ function Detail() {
                       disabled={readOnly}
                       onClick={() => mark(myMemberId, s)}
                     >
+                      {s === "hadir" ? (
+                        <IconCheck className="size-5" />
+                      ) : (
+                        <IconEnvelope className="size-5" />
+                      )}
                       Saya {s}
                     </Button>
                   ))}
