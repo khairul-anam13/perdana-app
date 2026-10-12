@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { Activity, Attendance } from "../../features/kegiatan/schema";
 import type { Member } from "../../features/anggota/schema";
+import type { LightingIssue } from "../../features/penerangan/schema";
 import type { Receipt, Transaction } from "../../features/kas/schema";
 import type { SyncEntity, SyncOp } from "../auth/permissions";
 
@@ -29,6 +30,7 @@ export type LocalDB = Dexie & {
   activities: EntityTable<Activity, "id">;
   attendances: EntityTable<Attendance, "id">;
   transactions: EntityTable<Transaction, "id">;
+  lightingIssues: EntityTable<LightingIssue, "id">;
   receipts: EntityTable<Receipt, "id">;
   outbox: EntityTable<OutboxItem, "id">;
   meta: EntityTable<MetaRow, "key">;
@@ -50,6 +52,9 @@ db.version(1).stores({
   outbox: "id, status, entityId, createdAt",
   meta: "key",
 });
+
+/** v2: laporan penerangan desa. Tabel baru saja; data v1 dan antrean outbox tidak disentuh. */
+db.version(2).stores({ lightingIssues: "id, status, reportedDate" });
 
 export async function getMeta<T>(key: string): Promise<T | undefined> {
   return (await db.meta.get(key))?.value as T | undefined;

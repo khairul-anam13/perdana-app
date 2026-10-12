@@ -17,6 +17,10 @@ model Organization {
   village     String   @map("village")
   subdistrict String   @map("subdistrict")
   regency     String   @map("regency")
+  /** tahun mulai periode kepengurusan (masa jabatan 2 tahun, Pasal 11); null = belum diatur */
+  termStart   Int?     @map("term_start")
+  /** denda per alpa (Rp); null = belum ditetapkan (naskah AD/ART tidak menuliskannya) */
+  fineAbsent  Int?     @map("fine_absent")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -26,6 +30,7 @@ model Organization {
   attendances  Attendance[]
   transactions Transaction[]
   receipts     Receipt[]
+  lightingIssues LightingIssue[]
 
   @@map("organizations")
 }
@@ -51,6 +56,29 @@ model User {
 
   @@unique([organizationId, username])
   @@map("users")
+}
+
+/** Laporan fasilitas penerangan desa yang mati/rusak, dari dilaporkan sampai diperbaiki. */
+model LightingIssue {
+  id             String    @id @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  location       String
+  kind           String // jalan | gang | balai | lainnya
+  condition      String // mati | redup | rusak
+  note           String?
+  reportedDate   DateTime  @map("reported_date") @db.Date
+  status         String    @default("terbuka") // terbuka | diperbaiki
+  fixedDate      DateTime? @map("fixed_date") @db.Date
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(3)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(3)
+  serverSeq      BigInt    @default(dbgenerated("nextval('server_seq')")) @map("server_seq")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, serverSeq])
+  @@map("lighting_issues")
 }
 
 model Member {

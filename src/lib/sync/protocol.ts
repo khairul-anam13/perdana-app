@@ -3,6 +3,7 @@ import type { Role, SyncEntity } from "../auth/permissions";
 import type { Member } from "../../features/anggota/schema";
 import type { Activity, Attendance } from "../../features/kegiatan/schema";
 import type { Transaction } from "../../features/kas/schema";
+import type { LightingIssue } from "../../features/penerangan/schema";
 import { isoDateTime, uuid } from "../schema-common";
 
 /** Kontrak API sinkronisasi (dipakai klien dan server). */
@@ -12,6 +13,7 @@ export const SYNC_ENTITIES = [
   "activity",
   "attendance",
   "transaction",
+  "lightingIssue",
 ] as const satisfies readonly SyncEntity[];
 
 export const changeSchema = z.object({
@@ -64,12 +66,21 @@ export type PullResponse = {
     activities: Activity[];
     attendances: Attendance[];
     transactions: Transaction[];
+    lightingIssues: LightingIssue[];
     receipts: ReceiptMeta[];
   };
   cursor: number;
   hasMore: boolean;
   me: SessionUserWire;
-  organization: { id: string; name: string; village: string; subdistrict: string; regency: string };
+  organization: {
+    id: string;
+    name: string;
+    village: string;
+    subdistrict: string;
+    regency: string;
+    termStart: number | null;
+    fineAbsent: number | null;
+  };
 };
 
 export const PULL_LIMIT = 200;

@@ -3,6 +3,7 @@ import { memberSchema } from "@/features/anggota/schema";
 import { activitySchema, attendanceSchema } from "@/features/kegiatan/schema";
 import { opposite } from "@/features/kas/ledger";
 import { transactionSchema } from "@/features/kas/schema";
+import { lightingIssueSchema } from "@/features/penerangan/schema";
 import { canWrite, seksiKategori } from "@/lib/auth/permissions";
 import type { Change, PushResponse, PushResult } from "@/lib/sync/protocol";
 import type { AuthUser } from "../auth";
@@ -214,11 +215,49 @@ const transactionHandler: Handler = async (tx, user, c) => {
   return "ok";
 };
 
+const lightingIssueHandler: Handler = async (tx, user, c) => {
+  const p = lightingIssueSchema.parse(c.payload);
+  if (p.id !== c.id) reject("ID tidak cocok");
+  const existing = await tx.lightingIssue.findUnique({ where: { id: p.id } });
+  if (existing) await ensureInOrg(existing, user, "Laporan penerangan");
+  // Siapa pun boleh membuat laporan; "create" untuk baris yang sudah ada tidak boleh menimpa
+  // (mengubah butuh op "update", yang hanya diizinkan untuk Ketua dan S. Kelistrikan).
+  if (existing && c.op === "create") return "duplikat";
+  const updatedAt = toDate(p.updatedAt);
+  if (existing && existing.updatedAt >= updatedAt) return "duplikat";
+
+  const data = {
+    location: p.location,
+    kind: p.kind,
+    condition: p.condition,
+    note: p.note,
+    reportedDate: toDate(p.reportedDate),
+    status: p.status,
+    fixedDate: toDateOrNull(p.fixedDate),
+    updatedAt,
+    deletedAt: toDateOrNull(p.deletedAt),
+    serverSeq: await nextSeq(tx),
+  };
+  if (existing) await tx.lightingIssue.update({ where: { id: p.id }, data });
+  else
+    await tx.lightingIssue.create({
+      data: {
+        id: p.id,
+        organizationId: user.organizationId,
+        createdBy: user.id,
+        createdAt: toDate(p.createdAt),
+        ...data,
+      },
+    });
+  return "ok";
+};
+
 const handlers: Record<Change["entity"], Handler> = {
   member: memberHandler,
   activity: activityHandler,
   attendance: attendanceHandler,
   transaction: transactionHandler,
+  lightingIssue: lightingIssueHandler,
 };
 
 export async function applyChange(user: AuthUser, change: Change): Promise<PushResult> {

@@ -11,7 +11,9 @@ import {
   faEllipsis,
   faGavel,
   faHeart,
+  faLightbulb,
   faLock,
+  faSitemap,
   faMobileScreen,
   faPalette,
   faPen,
@@ -119,6 +121,9 @@ export const IconCircleCheck = make(faCircleCheck);
 export const IconInfo = make(faCircleInfo);
 export const IconDatabase = make(faDatabase);
 export const IconMobile = make(faMobileScreen);
+
+export const IconLightbulb = make(faLightbulb);
+export const IconSitemap = make(faSitemap);
 
 // Merek (Brands)
 export const IconWhatsapp = make(faWhatsapp);

@@ -3,6 +3,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import type { Member } from "@/features/anggota/schema";
 import type { Activity, Attendance } from "@/features/kegiatan/schema";
 import type { Transaction } from "@/features/kas/schema";
+import type { LightingIssue } from "@/features/penerangan/schema";
 import { ROLES, type Role } from "@/lib/auth/permissions";
 import { newId } from "@/lib/id";
 import type { Change } from "@/lib/sync/protocol";
@@ -21,7 +22,7 @@ let ownMemberId: string;
 
 beforeEach(async () => {
   await prisma.$executeRawUnsafe(
-    "TRUNCATE receipts, attendances, transactions, activities, users, members, organizations RESTART IDENTITY CASCADE",
+    "TRUNCATE receipts, attendances, transactions, activities, lighting_issues, users, members, organizations RESTART IDENTITY CASCADE",
   );
   org = (
     await prisma.organization.create({
@@ -498,5 +499,72 @@ describe("pull", () => {
 
     const asPengurus = await pullChanges(users.sekretaris, 0n, 100);
     expect(asPengurus.changes.members.find((m) => m.id === other.id)?.phone).toBe("0899");
+  });
+});
+
+describe("laporan penerangan desa", () => {
+  const issue = (o: Partial<LightingIssue> = {}): LightingIssue => ({
+    id: newId(),
+    organizationId: org,
+    location: "Depan balai dusun",
+    kind: "jalan",
+    condition: "mati",
+    note: null,
+    reportedDate: "2026-10-01",
+    status: "terbuka",
+    fixedDate: null,
+    createdBy: null,
+    createdAt: T(0),
+    updatedAt: T(1),
+    deletedAt: null,
+    ...o,
+  });
+
+  it("siapa pun boleh melapor, dan mengirim ulang tidak menggandakan", async () => {
+    const i = issue();
+    const first = await applyChange(users.anggota, change("lightingIssue", "create", i));
+    const again = await applyChange(users.anggota, change("lightingIssue", "create", i));
+    expect([first.status, again.status]).toEqual(["ok", "duplikat"]);
+    expect(await prisma.lightingIssue.count()).toBe(1);
+  });
+
+  it("hanya Ketua dan S. Kelistrikan yang menandai diperbaiki", async () => {
+    const i = issue();
+    await applyChange(users.anggota, change("lightingIssue", "create", i));
+    const fixed = {
+      ...i,
+      status: "diperbaiki" as const,
+      fixedDate: "2026-10-05",
+      updatedAt: T(10),
+    };
+
+    for (const role of ["anggota", "bendahara", "sekretaris", "denda"] as const) {
+      const r = await applyChange(users[role], change("lightingIssue", "update", fixed));
+      expect(r.status, role).toBe("ditolak");
+    }
+    const ok = await applyChange(users.kelistrikan, change("lightingIssue", "update", fixed));
+    expect(ok.status).toBe("ok");
+    expect((await prisma.lightingIssue.findUniqueOrThrow({ where: { id: i.id } })).status).toBe(
+      "diperbaiki",
+    );
+  });
+
+  it('"create" pada laporan yang sudah ada tidak menimpa isinya', async () => {
+    const i = issue({ location: "Asli di gang mawar" });
+    await applyChange(users.anggota, change("lightingIssue", "create", i));
+    const r = await applyChange(
+      users.anggota,
+      change("lightingIssue", "create", { ...i, location: "Diubah paksa", updatedAt: T(99) }),
+    );
+    expect(r.status).toBe("duplikat");
+    expect((await prisma.lightingIssue.findUniqueOrThrow({ where: { id: i.id } })).location).toBe(
+      "Asli di gang mawar",
+    );
+  });
+
+  it("laporan ikut ditarik semua peran lewat pull", async () => {
+    await applyChange(users.anggota, change("lightingIssue", "create", issue()));
+    const pulled = await pullChanges(users.bendahara, 0n, 100);
+    expect(pulled.changes.lightingIssues).toHaveLength(1);
   });
 });

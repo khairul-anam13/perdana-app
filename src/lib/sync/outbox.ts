@@ -1,6 +1,7 @@
 import type { Activity, Attendance } from "../../features/kegiatan/schema";
 import type { Member } from "../../features/anggota/schema";
 import type { Transaction } from "../../features/kas/schema";
+import type { LightingIssue } from "../../features/penerangan/schema";
 import type { SyncEntity, SyncOp } from "../auth/permissions";
 import { db } from "../db/local";
 import { newId } from "../id";
@@ -12,6 +13,7 @@ type RowOf = {
   activity: Activity;
   attendance: Attendance;
   transaction: Transaction;
+  lightingIssue: LightingIssue;
 };
 
 const TABLE: Record<SyncEntity, string> = {
@@ -19,6 +21,7 @@ const TABLE: Record<SyncEntity, string> = {
   activity: "activities",
   attendance: "attendances",
   transaction: "transactions",
+  lightingIssue: "lightingIssues",
 };
 
 /**

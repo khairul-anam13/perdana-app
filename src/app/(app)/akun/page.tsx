@@ -25,6 +25,7 @@ const ENTITY_LABEL = {
   activity: "Kegiatan",
   attendance: "Absensi",
   transaction: "Transaksi kas",
+  lightingIssue: "Laporan penerangan",
 } as const;
 const OP_LABEL = { create: "baru", update: "diubah", delete: "dihapus" } as const;
 
@@ -38,6 +39,8 @@ function describe(i: OutboxItem): string {
       return String(p.title ?? "");
     case "attendance":
       return ATTENDANCE_LABEL[p.status as keyof typeof ATTENDANCE_LABEL] ?? "";
+    case "lightingIssue":
+      return String(p.location ?? "");
     case "transaction":
       return `${String(p.category ?? "")} ${formatRupiah(Number(p.amount ?? 0))}`;
   }

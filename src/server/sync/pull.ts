@@ -4,6 +4,7 @@ import { prisma } from "../db";
 import {
   activityToWire,
   attendanceToWire,
+  lightingIssueToWire,
   memberToWire,
   redactMember,
   transactionToWire,
@@ -14,6 +15,7 @@ type Tagged =
   | { seq: number; kind: "activities"; row: PullResponse["changes"]["activities"][number] }
   | { seq: number; kind: "attendances"; row: PullResponse["changes"]["attendances"][number] }
   | { seq: number; kind: "transactions"; row: PullResponse["changes"]["transactions"][number] }
+  | { seq: number; kind: "lightingIssues"; row: PullResponse["changes"]["lightingIssues"][number] }
   | { seq: number; kind: "receipts"; row: PullResponse["changes"]["receipts"][number] };
 
 /**
@@ -29,29 +31,31 @@ export async function pullChanges(
   const where = { organizationId: user.organizationId, serverSeq: { gt: since } };
   const orderBy = { serverSeq: "asc" as const };
 
-  const [members, activities, attendances, transactions, receipts, org] = await Promise.all([
-    prisma.member.findMany({ where, orderBy, take }),
-    prisma.activity.findMany({ where, orderBy, take }),
-    prisma.attendance.findMany({ where, orderBy, take }),
-    prisma.transaction.findMany({ where, orderBy, take }),
-    prisma.receipt.findMany({
-      where,
-      orderBy,
-      take,
-      select: {
-        id: true,
-        organizationId: true,
-        mime: true,
-        size: true,
-        createdBy: true,
-        createdAt: true,
-        updatedAt: true,
-        deletedAt: true,
-        serverSeq: true,
-      },
-    }),
-    prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } }),
-  ]);
+  const [members, activities, attendances, transactions, lightingIssues, receipts, org] =
+    await Promise.all([
+      prisma.member.findMany({ where, orderBy, take }),
+      prisma.activity.findMany({ where, orderBy, take }),
+      prisma.attendance.findMany({ where, orderBy, take }),
+      prisma.transaction.findMany({ where, orderBy, take }),
+      prisma.lightingIssue.findMany({ where, orderBy, take }),
+      prisma.receipt.findMany({
+        where,
+        orderBy,
+        take,
+        select: {
+          id: true,
+          organizationId: true,
+          mime: true,
+          size: true,
+          createdBy: true,
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          serverSeq: true,
+        },
+      }),
+      prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } }),
+    ]);
 
   const all: Tagged[] = [
     ...members.map((r): Tagged => ({
@@ -73,6 +77,11 @@ export async function pullChanges(
       seq: Number(r.serverSeq),
       kind: "transactions",
       row: transactionToWire(r),
+    })),
+    ...lightingIssues.map((r): Tagged => ({
+      seq: Number(r.serverSeq),
+      kind: "lightingIssues",
+      row: lightingIssueToWire(r),
     })),
     ...receipts.map((r): Tagged => ({
       seq: Number(r.serverSeq),
@@ -96,6 +105,7 @@ export async function pullChanges(
     activities: [],
     attendances: [],
     transactions: [],
+    lightingIssues: [],
     receipts: [],
   };
   for (const t of page) (changes[t.kind] as (typeof t.row)[]).push(t.row);
@@ -118,6 +128,8 @@ export async function pullChanges(
       village: org.village,
       subdistrict: org.subdistrict,
       regency: org.regency,
+      termStart: org.termStart,
+      fineAbsent: org.fineAbsent,
     },
   };
 }

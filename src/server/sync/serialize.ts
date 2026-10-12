@@ -2,11 +2,13 @@ import type {
   Activity as DbActivity,
   Attendance as DbAttendance,
   Member as DbMember,
+  LightingIssue as DbLightingIssue,
   Transaction as DbTransaction,
 } from "@/generated/prisma/client";
 import type { Member } from "@/features/anggota/schema";
 import type { Activity, Attendance } from "@/features/kegiatan/schema";
 import type { Transaction } from "@/features/kas/schema";
+import type { LightingIssue } from "@/features/penerangan/schema";
 import { canSeeMemberContacts } from "@/lib/auth/permissions";
 import type { AuthUser } from "../auth";
 
@@ -66,6 +68,22 @@ export const attendanceToWire = (r: DbAttendance): Attendance => ({
   status: r.status as Attendance["status"],
   recordedAt: time(r.recordedAt),
   recordedBy: r.recordedBy,
+  createdBy: r.createdBy,
+  createdAt: time(r.createdAt),
+  updatedAt: time(r.updatedAt),
+  deletedAt: timeOrNull(r.deletedAt),
+});
+
+export const lightingIssueToWire = (r: DbLightingIssue): LightingIssue => ({
+  id: r.id,
+  organizationId: r.organizationId,
+  location: r.location,
+  kind: r.kind as LightingIssue["kind"],
+  condition: r.condition as LightingIssue["condition"],
+  note: r.note,
+  reportedDate: day(r.reportedDate),
+  status: r.status as LightingIssue["status"],
+  fixedDate: dayOrNull(r.fixedDate),
   createdBy: r.createdBy,
   createdAt: time(r.createdAt),
   updatedAt: time(r.updatedAt),

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, ListSkeleton } from "@/components/ui/empty-state";
 import { Select } from "@/components/ui/field";
-import { IconDues, IconPlus, IconReport, IconWallet } from "@/components/ui/icons";
+import { IconDues, IconGavel, IconPlus, IconReport, IconWallet } from "@/components/ui/icons";
 import { MonthNav } from "@/components/ui/month-nav";
 import { PageHeader } from "@/components/ui/page-header";
 import { Segmented } from "@/components/ui/segmented";
@@ -92,11 +92,14 @@ export default function KasPage() {
           periodLabel={formatBulan(month)}
         />
 
-        <div className="grid grid-cols-2 gap-2">
-          <ButtonLink href="/kas/iuran" variant="secondary">
+        <div className="grid grid-cols-3 gap-2">
+          <ButtonLink href="/kas/iuran" variant="secondary" className="px-2">
             <IconDues className="size-5 text-pulpen-600" /> Iuran
           </ButtonLink>
-          <ButtonLink href="/kas/laporan" variant="secondary">
+          <ButtonLink href="/kas/denda" variant="secondary" className="px-2">
+            <IconGavel className="size-5 text-pulpen-600" /> Denda
+          </ButtonLink>
+          <ButtonLink href="/kas/laporan" variant="secondary" className="px-2">
             <IconReport className="size-5 text-pulpen-600" /> Laporan
           </ButtonLink>
         </div>

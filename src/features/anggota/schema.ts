@@ -17,6 +17,8 @@ export const POSITIONS = [
   "Wakil Ketua",
   "Sekretaris",
   "Bendahara",
+  "Seksi Kelistrikan",
+  "Seksi Denda",
   "Seksi",
 ] as const;
 

@@ -161,7 +161,16 @@ async function mergeLww<T extends LwwRow>(
 async function applyPull(data: PullResponse): Promise<void> {
   await db.transaction(
     "rw",
-    [db.members, db.activities, db.attendances, db.transactions, db.receipts, db.outbox, db.meta],
+    [
+      db.members,
+      db.activities,
+      db.attendances,
+      db.transactions,
+      db.lightingIssues,
+      db.receipts,
+      db.outbox,
+      db.meta,
+    ],
     async () => {
       const pendingItems = await db.outbox.where("status").equals("menunggu").toArray();
       const pending = new Set(pendingItems.map((i) => i.entityId));
@@ -170,6 +179,7 @@ async function applyPull(data: PullResponse): Promise<void> {
       await mergeLww(db.members, changes.members, pending);
       await mergeLww(db.activities, changes.activities, pending);
       await mergeLww(db.transactions, changes.transactions, pending);
+      await mergeLww(db.lightingIssues, changes.lightingIssues, pending);
 
       // Absensi: satu baris per (kegiatan, anggota). Jika server punya baris lain untuk pasangan yang sama,
       // buang duplikat lokal (kecuali yang masih menunggu dikirim).
@@ -303,6 +313,7 @@ export async function discardRejected(item: OutboxItem): Promise<void> {
     activity: db.activities,
     attendance: db.attendances,
     transaction: db.transactions,
+    lightingIssue: db.lightingIssues,
   }[item.entity] as EntityTable<LwwRow, "id">;
   await db.transaction("rw", [table, db.outbox, db.meta], async () => {
     await db.outbox.delete(item.id);

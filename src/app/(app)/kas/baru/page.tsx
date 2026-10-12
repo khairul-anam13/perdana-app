@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Segmented } from "@/components/ui/segmented";
 import { useToast } from "@/components/ui/toast";
 import { usePerm } from "@/lib/auth/use-perm";
+import { CATEGORY_DENDA } from "@/lib/auth/permissions";
 import { formatAngka, formatRupiah, parseRupiah } from "@/lib/format/rupiah";
 import { todayISO } from "@/lib/format/tanggal";
 import { compressImage } from "@/lib/image/compress";
@@ -45,7 +46,7 @@ function Form() {
   const { members, activities } = useLookups();
 
   const [typeState, setType] = useState<TxType>(parseType(params.get("tipe")));
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState(Math.min(Number(params.get("nominal")) || 0, MAX_AMOUNT));
   const [categoryState, setCategory] = useState(params.get("kategori") ?? "");
   const [memberId, setMemberId] = useState(params.get("anggota") ?? "");
   const [activityId, setActivityId] = useState(params.get("kegiatan") ?? "");
@@ -57,13 +58,15 @@ function Form() {
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   // Kembali ke layar asal (mis. rekap iuran), bukan selalu ke daftar kas.
-  const backTo = params.get("dari") === "iuran" ? "/kas/iuran" : "/kas";
+  const backTo = { iuran: "/kas/iuran", denda: "/kas/denda" }[params.get("dari") ?? ""] ?? "/kas";
 
   // Seksi hanya mencatat pemasukan di satu kategori: jenis dan kategori dikunci (server juga menolak lainnya).
   const type: TxType = seksiKategori ? "pemasukan" : typeState;
   const category = seksiKategori ?? categoryState;
   const categories = type === "pemasukan" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-  const isIuran = type === "pemasukan" && category === CATEGORY_IURAN;
+  // Iuran dan denda selalu atas nama anggota (rekap iuran dan denda dihitung dari sini).
+  const isIuran =
+    type === "pemasukan" && (category === CATEGORY_IURAN || category === CATEGORY_DENDA);
   const activeMembers = useMemo(() => members.filter((m) => m.status === "aktif"), [members]);
   const receiptUrl = useMemo(() => (receipt ? URL.createObjectURL(receipt) : null), [receipt]);
   useEffect(() => () => void (receiptUrl && URL.revokeObjectURL(receiptUrl)), [receiptUrl]);
@@ -111,7 +114,7 @@ function Form() {
     if (!parsed.success) for (const i of parsed.error.issues) next[String(i.path[0])] = i.message;
     if (amount <= 0) next.amount = "Isi nominal lebih dari 0";
     if (!category) next.category = "Pilih kategori";
-    if (isIuran && !memberId) next.memberId = "Pilih anggota yang membayar iuran";
+    if (isIuran && !memberId) next.memberId = "Pilih anggota yang membayar";
     setErrors(next);
     if (Object.keys(next).length || !parsed.success) {
       // Bawa pengguna ke isian pertama yang salah; tombol simpan ada jauh di bawah.

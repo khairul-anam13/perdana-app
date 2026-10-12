@@ -107,6 +107,23 @@ penyimpanan tambahan. Pindah ke object storage bila volume membesar.
 - **Mode gelap belum ada** (iOS punya, tetapi bukan permintaan saat ini).
 - **Saldo bisa disembunyikan** di kartu beranda (`perdana.saldoSembunyi`), seperti aplikasi bank; tersimpan per HP.
 
+## Penerangan, struktur, denda
+
+- **Hanya satu entitas sinkron baru (`lightingIssue`).** Struktur organisasi dan denda dihitung dari data yang
+  sudah ada (jabatan anggota, absensi, kas), jadi tidak ada tabel dan tidak ada sumber kebenaran ganda.
+- **Lampu: siapa pun melapor, hanya Ketua dan S. Kelistrikan yang menindaklanjuti.** Laporan dari lapangan paling
+  berharga saat sinyal jelek, maka lewat antrean offline seperti kas. `create` pada baris yang sudah ada tidak menimpa;
+  perubahan wajib `update` yang dibatasi peran.
+- **Struktur = anggota aktif dengan jabatan selain "Anggota".** Mengubah jabatan di daftar anggota otomatis mengubah
+  bagan. Periode (tahun mulai, +2 tahun menurut Pasal 11) disimpan di organisasi dan hanya bisa diubah online.
+  Riwayat periode sebelumnya belum ada.
+- **Denda = jumlah alpa x satu tarif; dibayar = kas kategori Denda per anggota.** Tarif tidak tertulis di naskah AD/ART
+  (Pasal 9), jadi diisi Ketua atau S. Denda dan berlaku surut. Hanya "alpa" yang ditulis eksplisit yang didenda: anggota
+  yang belum diabsen tidak dianggap alpa. Denda pelanggaran (Rp3.000.000/Rp5.000.000) tidak dihitung otomatis; dicatat
+  sebagai pembayaran di kas. Anggota biasa hanya melihat dendanya sendiri.
+- **Pengaturan organisasi lewat `PATCH /api/organization`, online saja**: jarang berubah, dan semua perangkat harus
+  memakai nilai yang sama.
+
 ## Alat dan versi
 
 - **TypeScript 6 + ESLint 9** (bukan 7 / 10): `typescript-eslint` belum mendukung TypeScript 7 dan

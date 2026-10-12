@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { INCOME_CATEGORIES } from "../../features/kas/schema";
 import {
+  canEditOrgSetting,
   canAssignRole,
   canManageUsers,
   canWrite,
@@ -38,6 +39,22 @@ describe("hak tulis per peran", () => {
   it("Sup Admin tidak menulis data organisasi (kas, anggota, kegiatan)", () => {
     for (const e of ["transaction", "member", "activity"] as const)
       expect(canWrite("admin", e)).toBe(false);
+  });
+});
+
+describe("penerangan dan pengaturan organisasi", () => {
+  it("siapa pun boleh melapor lampu; hanya Ketua dan S. Kelistrikan yang menindaklanjuti", () => {
+    expect(ROLES.filter((r) => canWrite(r, "lightingIssue", "create"))).toEqual([...ROLES]);
+    for (const op of ["update", "delete"] as const)
+      expect(ROLES.filter((r) => canWrite(r, "lightingIssue", op))).toEqual([
+        "ketua",
+        "kelistrikan",
+      ]);
+  });
+
+  it("periode: Ketua dan Sekretaris; tarif denda: Ketua dan S. Denda", () => {
+    expect(ROLES.filter((r) => canEditOrgSetting(r, "termStart"))).toEqual(["ketua", "sekretaris"]);
+    expect(ROLES.filter((r) => canEditOrgSetting(r, "fineAbsent"))).toEqual(["ketua", "denda"]);
   });
 });
 

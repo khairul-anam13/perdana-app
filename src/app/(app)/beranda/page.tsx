@@ -11,9 +11,12 @@ import {
   IconCalendar,
   IconChevronRight,
   IconDues,
+  IconGavel,
+  IconLightbulb,
   IconMapPin,
   IconPlus,
   IconReport,
+  IconSitemap,
   IconUsers,
   type IconProps,
 } from "@/components/ui/icons";
@@ -21,12 +24,16 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ROLE_LABEL } from "@/lib/auth/permissions";
 import { usePerm } from "@/lib/auth/use-perm";
 import { getMeta } from "@/lib/db/local";
+import { formatRupiah } from "@/lib/format/rupiah";
 import { formatBulan, formatTanggalPanjang, monthKey, todayISO } from "@/lib/format/tanggal";
 import { balance, iuranPaid, summarize } from "@/features/kas/ledger";
 import { SaldoKartu } from "@/features/kas/saldo-kartu";
 import { CATEGORY_IURAN } from "@/features/kas/schema";
 import { useLedger } from "@/features/kas/use-ledger";
 import { BAB } from "@/features/adart/data";
+import { useDenda } from "@/features/denda/use-denda";
+import { listIssues } from "@/features/penerangan/repository";
+import { labelPeriode } from "@/features/struktur/susun";
 import { useLookups } from "@/features/use-lookups";
 
 const BULAN_PENDEK = "Jan Feb Mar Apr Mei Jun Jul Agu Sep Okt Nov Des".split(" ");
@@ -104,7 +111,15 @@ export default function BerandaPage() {
   const { txs } = useLedger();
   const { members, activities, loading } = useLookups();
   const lastSyncAt = useLiveQuery(async () => (await getMeta<string>("lastSyncAt")) ?? null, []);
-  const org = useLiveQuery(() => getMeta<{ name: string }>("organization"), []);
+  const org = useLiveQuery(
+    () => getMeta<{ name: string; termStart?: number | null }>("organization"),
+    [],
+  );
+  const lampuRusak = useLiveQuery(
+    async () => (await listIssues()).filter((i) => i.status === "terbuka").length,
+    [],
+  );
+  const denda = useDenda();
 
   const today = todayISO();
   const month = monthKey(today);
@@ -251,14 +266,39 @@ export default function BerandaPage() {
             <Baris href="/anggota" label="Anggota aktif" icon={IconUsers}>
               <span>{active.length} orang</span>
             </Baris>
+            <Baris href="/kas/denda" label="Denda ketertiban" icon={IconGavel}>
+              {denda.loading ? (
+                "…"
+              ) : denda.tarif === null ? (
+                "Tarif belum diatur"
+              ) : denda.sisa > 0 ? (
+                <span className="stabilo font-bold text-tinta">
+                  {formatRupiah(denda.sisa)} belum dibayar
+                </span>
+              ) : (
+                "Tidak ada tunggakan"
+              )}
+            </Baris>
           </ul>
         </section>
 
-        <section aria-labelledby="aturan">
-          <h2 id="aturan" className="mb-2 font-display text-lg font-bold">
-            Aturan organisasi
+        <section aria-labelledby="desa">
+          <h2 id="desa" className="mb-2 font-display text-lg font-bold">
+            Organisasi dan desa
           </h2>
           <ul className="lembar divide-y divide-garis overflow-hidden">
+            <Baris href="/penerangan" label="Penerangan desa" icon={IconLightbulb}>
+              {lampuRusak === undefined ? (
+                "…"
+              ) : lampuRusak > 0 ? (
+                <span className="stabilo font-bold text-tinta">{lampuRusak} lampu rusak</span>
+              ) : (
+                "Semua menyala"
+              )}
+            </Baris>
+            <Baris href="/struktur" label="Struktur organisasi" icon={IconSitemap}>
+              {org?.termStart ? `Periode ${labelPeriode(org.termStart)}` : "Pengurus dan jabatan"}
+            </Baris>
             <Baris href="/adart" label="AD/ART Karang Taruna" icon={IconBook}>
               <span>{JUMLAH_PASAL} pasal, bisa dicari</span>
             </Baris>

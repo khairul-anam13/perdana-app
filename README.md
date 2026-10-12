@@ -121,6 +121,17 @@ Aturan yang dijaga: komponen UI hanya memanggil **repository lokal** (tidak lang
 **dan** antrean outbox dalam satu transaksi; hak akses ditegakkan di **server** (UI hanya menyembunyikan tombol).
 Menambah modul baru = folder baru di `features/`, satu entitas di `lib/sync/protocol.ts`, satu handler di `server/sync/push.ts`.
 
+## Penerangan, struktur, dan denda
+
+| Halaman       | Isi                                                                                                   | Data                                                              |
+| ------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `/penerangan` | Laporan lampu mati/redup/rusak: lokasi, jenis, sejak kapan, status. Siapa pun melapor (offline juga). | Tabel baru `lighting_issues`, ikut sinkronisasi                   |
+| `/struktur`   | Bagan pengurus dan pemegang jabatan periode ini; Ketua/Sekretaris mengatur jabatan dan periode.       | Kolom `position` anggota + `organizations.term_start`             |
+| `/kas/denda`  | Denda alpa per anggota: jumlah alpa, denda, sudah dibayar, sisa. Anggota biasa hanya melihat dirinya. | Absensi "alpa" + kas kategori Denda + `organizations.fine_absent` |
+
+Migrasi `20261012090000_penerangan_periode_denda` menambah tabel dan dua kolom (aditif). **Terapkan ke database
+sebelum men-deploy kode ini**: `pnpm db:deploy` dengan URL port 5432.
+
 ## Tema tampilan
 
 Dua gaya, dipilih di **Akun → Tampilan** dan disimpan per HP (`localStorage`, tidak memengaruhi data atau pengguna lain):
